@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Səbət - Toys Market</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+        }
+
+        .cart-details {
+            flex: 1;
+        }
+
+        .cart-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkout-section {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Navbar injected here -->
+    </div>
+
+    <div class="container mt-2 fade-in">
+        <h1>Səbətiniz</h1>
+        <div id="cart-items">
+            <!-- Items injected here -->
+        </div>
+
+        <div id="cart-summary" class="checkout-section" style="display:none;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                <h3>Cəmi:</h3>
+                <h3 id="total-price">0 AZN</h3>
+            </div>
+
+            <div id="payment-methods">
+                <h4>Ödəniş növünü seçin:</h4>
+                <div style="display:flex; gap:1rem; margin:1rem 0;">
+                    <button class="btn btn-outline" onclick="showPayment('card')">Kart ilə</button>
+                    <button class="btn btn-outline" onclick="showPayment('tocoin')">Tocoin ilə</button>
+                </div>
+            </div>
+
+            <div id="card-payment" style="display:none;">
+                <div class="alert" style="background:#e3f2fd; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+                    <p><strong>Kart nömrəsi:</strong> 4169738847503707 (Kapital Bank)</p>
+                    <p>Ödənişi etdikdən sonra qəbzin şəklini yükləyin.</p>
+                </div>
+                <input type="file" id="receipt-upload" accept="image/*" class="mb-1">
+                <button class="btn btn-primary" onclick="handleCardCheckout()">Sifarişi Tamamla</button>
+            </div>
+
+            <div id="tocoin-payment" style="display:none;">
+                <p class="mb-1">Balansınız: <span id="user-balance">0</span> Tocoin</p>
+                <p class="mb-1">Tələb olunan: <span id="required-tocoin">0</span> Tocoin</p>
+                <button class="btn btn-secondary" onclick="handleTocoinCheckout()">Tocoin ilə Al</button>
+                <div id="balance-error" style="color:red; display:none; margin-top:0.5rem;">
+                    Balansınız kifayət etmir. <a href="/profile.html">Balansı artır</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderNavbar, Loader, Toast } from './js/components.js';
+        import { getCurrentUser } from './js/auth.js';
+        import { Cart } from './js/cart.js';
+        import { processCardCheckout, processTocoinCheckout } from './js/checkout.js';
+
+        let currentUser = null;
+
+        async function init() {
+            currentUser = await getCurrentUser();
+            document.getElementById('app').appendChild(renderNavbar(currentUser));
+            renderCart();
+        }
+
+        function renderCart() {
+            const cart = Cart.get();
+            const container = document.getElementById('cart-items');
+            const summary = document.getElementById('cart-summary');
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p>Səbətiniz boşdur.</p>';
+                summary.style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image_url || 'https://placehold.co/100'}" alt="${item.name}">
+                    <div class="cart-details">
+                        <h4>${item.name}</h4>
+                        <p>${item.price_azn} AZN ${item.tocoin_price ? `/ ${item.tocoin_price} Tocoin` : ''}</p>
+                    </div>
+                    <div class="cart-actions">
+                        <button onclick="updateQty('${item.id}', ${item.qty - 1})">-</button>
+                        <span>${item.qty}</span>
+                        <button onclick="updateQty('${item.id}', ${item.qty + 1})">+</button>
+                        <button onclick="removeItem('${item.id}')" style="color:red; margin-left:1rem;">&times;</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((acc, item) => acc + (item.price_azn * item.qty), 0);
+            document.getElementById('total-price').textContent = `${total.toFixed(2)} AZN`;
+            summary.style.display = 'block';
+        }
+
+        window.updateQty = (id, qty) => {
+            Cart.updateQty(id, qty);
+            renderCart();
+        };
+
+        window.removeItem = (id) => {
+            Cart.remove(id);
+            renderCart();
+        };
+
+        window.showPayment = (method) => {
+            document.getElementById('card-payment').style.display = method === 'card' ? 'block' : 'none';
+            document.getElementById('tocoin-payment').style.display = method === 'tocoin' ? 'block' : 'none';
+
+            if (method === 'tocoin') {
+                const cart = Cart.get();
+                const totalTocoin = cart.reduce((acc, item) => acc + ((item.tocoin_price || 0) * item.qty), 0);
+                document.getElementById('user-balance').textContent = currentUser?.tocoin_balance || 0;
+                document.getElementById('required-tocoin').textContent = totalTocoin;
+
+                if (!currentUser || currentUser.tocoin_balance < totalTocoin) {
+                    document.getElementById('balance-error').style.display = 'block';
+                } else {
+                    document.getElementById('balance-error').style.display = 'none';
+                }
+            }
+        };
+
+        window.handleCardCheckout = async () => {
+            const fileInput = document.getElementById('receipt-upload');
+            if (fileInput.files.length === 0) {
+                Toast.show('Zəhmət olmasa qəbz şəklini yükləyin.', 'error');
+                return;
+            }
+            await processCardCheckout(fileInput.files[0]);
+        };
+
+        window.handleTocoinCheckout = async () => {
+            await processTocoinCheckout();
+        };
+
+        init();
+    </script>
+</body>
+
+</html>

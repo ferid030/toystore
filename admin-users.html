@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstifadəçilər - Admin Panel</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 2rem 1rem;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 1rem;
+            color: #aaa;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .main-content {
+            padding: 2rem;
+            background: #f4f6f8;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div class="sidebar">
+            <h2 style="padding-left:1rem; margin-bottom:2rem;">Admin Panel</h2>
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-toys.html">Oyuncaqlar</a>
+            <a href="admin-receipts.html">Qəbzlər</a>
+            <a href="admin-users.html" class="active">İstifadəçilər</a>
+            <a href="admin-orders.html">Sifarişlər</a>
+            <a href="/">Sayta Qayıt</a>
+        </div>
+        <div class="main-content">
+            <div class="card">
+                <h2>İstifadəçilər</h2>
+                <div id="users-list">Yüklənir...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { checkAdmin, AdminUsers } from './js/admin.js';
+
+        (async () => {
+            await checkAdmin();
+            loadUsers();
+        })();
+
+        async function loadUsers() {
+            const { data: users } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+            const container = document.getElementById('users-list');
+
+            if (!users.length) {
+                container.innerHTML = '<p>İstifadəçi yoxdur.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Ad</th>
+                            <th>Balans (Tocoin)</th>
+                            <th>Rol</th>
+                            <th>Əməliyyat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${user.email}</td>
+                                <td>${user.full_name || '-'}</td>
+                                <td>${user.tocoin_balance}</td>
+                                <td>${user.role}</td>
+                                <td>
+                                    <button onclick="editBalance('${user.id}', ${user.tocoin_balance})" class="btn btn-sm btn-outline">Balansı Dəyiş</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            window.editBalance = (id, currentBalance) => {
+                const newBalance = prompt('Yeni balans:', currentBalance);
+                if (newBalance !== null) {
+                    AdminUsers.updateBalance(id, newBalance);
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>

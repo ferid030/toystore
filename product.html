@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Məhsul - Toys Market</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .product-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+        }
+
+        .product-info h1 {
+            margin-top: 0;
+            color: var(--dark-color);
+        }
+
+        .price-tag {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 1rem 0;
+        }
+
+        .tocoin-price {
+            color: var(--secondary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .features-list {
+            margin: 1.5rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .features-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .product-container {
+                grid-template-columns: 1fr;
+            }
+
+            .product-image {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <div class="container mt-2 fade-in">
+        <div id="product-details" class="product-container">
+            <!-- Content injected here -->
+            <p>Yüklənir...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { renderNavbar, renderFooter, Loader, Toast } from './js/components.js';
+        import { getCurrentUser } from './js/auth.js';
+        import { Cart } from './js/cart.js';
+
+        (async () => {
+            Loader.show();
+            const user = await getCurrentUser();
+            document.getElementById('app').appendChild(renderNavbar(user));
+            document.getElementById('app').appendChild(renderFooter());
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                window.location.href = '/';
+                return;
+            }
+
+            await loadProduct(productId);
+            Loader.hide();
+        })();
+
+        async function loadProduct(id) {
+            const { data: toy, error } = await supabase
+                .from('toys')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                document.getElementById('product-details').innerHTML = '<p>Məhsul tapılmadı.</p>';
+                return;
+            }
+
+            // Parse features if it's a string, otherwise use as is
+            let features = toy.features;
+            if (typeof features === 'string') {
+                try { features = JSON.parse(features); } catch (e) { features = {}; }
+            }
+
+            // If features is null/undefined, make it empty object
+            features = features || {};
+
+            const featuresHtml = Object.entries(features).map(([key, value]) => `
+                <li><strong>${key}:</strong> ${value}</li>
+            `).join('');
+
+            document.getElementById('product-details').innerHTML = `
+                <div>
+                    <img src="${toy.image_url || 'https://placehold.co/500'}" alt="${toy.name}" class="product-image">
+                </div>
+                <div class="product-info">
+                    <h1>${toy.name}</h1>
+                    <div class="price-tag">${toy.price_azn} AZN</div>
+                    ${toy.tocoin_price ? `<div class="tocoin-price">${toy.tocoin_price} Tocoin</div>` : ''}
+                    
+                    <p class="mt-1">${toy.description || 'Təsvir yoxdur.'}</p>
+                    
+                    ${featuresHtml ? `
+                        <h3>Xüsusiyyətlər</h3>
+                        <ul class="features-list">
+                            ${featuresHtml}
+                        </ul>
+                    ` : ''}
+
+                    <div class="mt-1">
+                        <strong>Stok:</strong> ${toy.stock > 0 ? toy.stock + ' ədəd' : '<span style="color:red">Bitib</span>'}
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="addToCart('${toy.id}')" ${toy.stock <= 0 ? 'disabled' : ''}>Səbətə At</button>
+                        <button class="btn btn-outline" onclick="buyNow('${toy.id}')" ${toy.stock <= 0 ? 'disabled' : ''}>Birbaşa Al</button>
+                    </div>
+                </div>
+            `;
+
+            // Expose functions to window for onclick
+            window.addToCart = (id) => {
+                Cart.add(toy);
+            };
+
+            window.buyNow = (id) => {
+                Cart.add(toy);
+                window.location.href = '/cart.html';
+            };
+        }
+    </script>
+</body>
+
+</html>

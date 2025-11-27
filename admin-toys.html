@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oyuncaqlar - Admin Panel</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 2rem 1rem;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 1rem;
+            color: #aaa;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .main-content {
+            padding: 2rem;
+            background: #f4f6f8;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div class="sidebar">
+            <h2 style="padding-left:1rem; margin-bottom:2rem;">Admin Panel</h2>
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-toys.html" class="active">Oyuncaqlar</a>
+            <a href="admin-receipts.html">Qəbzlər</a>
+            <a href="/">Sayta Qayıt</a>
+        </div>
+        <div class="main-content">
+            <div class="card">
+                <h2>Yeni Oyuncaq Əlavə Et</h2>
+                <form id="add-toy-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ad</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Qiymət (AZN)</label>
+                            <input type="number" name="price_azn" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tocoin Qiyməti (Optional)</label>
+                            <input type="number" name="tocoin_price" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Stok Sayı</label>
+                            <input type="number" name="stock" value="10" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Təsvir</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Şəkil</label>
+                        <input type="file" id="toy-image" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Əlavə Et</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Mövcud Oyuncaqlar</h2>
+                <div id="toys-list">Yüklənir...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { checkAdmin, AdminToys } from './js/admin.js';
+
+        (async () => {
+            await checkAdmin();
+            loadToys();
+
+            document.getElementById('add-toy-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const toyData = {
+                    name: formData.get('name'),
+                    price_azn: formData.get('price_azn'),
+                    tocoin_price: formData.get('tocoin_price') || null,
+                    stock: formData.get('stock'),
+                    description: formData.get('description'),
+                    is_active: true
+                };
+                const imageFile = document.getElementById('toy-image').files[0];
+                await AdminToys.add(toyData, imageFile);
+            });
+        })();
+
+        async function loadToys() {
+            const { data: toys } = await supabase.from('toys').select('*').order('created_at', { ascending: false });
+            const container = document.getElementById('toys-list');
+
+            if (!toys.length) {
+                container.innerHTML = '<p>Oyuncaq yoxdur.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="text-align:left; border-bottom:1px solid #eee;">
+                            <th style="padding:1rem;">Şəkil</th>
+                            <th>Ad</th>
+                            <th>Qiymət</th>
+                            <th>Stok</th>
+                            <th>Əməliyyat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${toys.map(toy => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:1rem;"><img src="${toy.image_url || 'https://placehold.co/50'}" width="50" height="50" style="object-fit:cover; border-radius:4px;"></td>
+                                <td>${toy.name}</td>
+                                <td>${toy.price_azn} AZN</td>
+                                <td>${toy.stock}</td>
+                                <td>
+                                    <button onclick="deleteToy('${toy.id}')" class="btn btn-sm btn-outline" style="color:red; border-color:red;">Sil</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            window.deleteToy = (id) => AdminToys.delete(id);
+        }
+    </script>
+</body>
+
+</html>

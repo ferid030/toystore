@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Əlaqə - Toys Market</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .contact-form {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <div class="container mt-2 fade-in">
+        <div class="contact-form">
+            <h2 class="text-center mb-2">Bizimlə Əlaqə</h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label>Adınız</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Mesajınız</label>
+                    <textarea rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%">Göndər</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderNavbar, renderFooter, Toast } from './js/components.js';
+        import { getCurrentUser } from './js/auth.js';
+
+        (async () => {
+            const user = await getCurrentUser();
+            document.getElementById('app').appendChild(renderNavbar(user));
+            document.getElementById('app').appendChild(renderFooter());
+
+            document.getElementById('contact-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                Toast.show('Mesajınız göndərildi! Tezliklə sizinlə əlaqə saxlayacağıq.', 'success');
+                e.target.reset();
+            });
+        })();
+    </script>
+</body>
+
+</html>

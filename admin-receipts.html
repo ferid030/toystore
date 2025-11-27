@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qəbzlər - Admin Panel</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--dark-color);
+            color: var(--white);
+            padding: 2rem 1rem;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 1rem;
+            color: #aaa;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .main-content {
+            padding: 2rem;
+            background: #f4f6f8;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .receipt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .receipt-card {
+            border: 1px solid #eee;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .receipt-img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div class="sidebar">
+            <h2 style="padding-left:1rem; margin-bottom:2rem;">Admin Panel</h2>
+            <a href="admin.html">Dashboard</a>
+            <a href="admin-toys.html">Oyuncaqlar</a>
+            <a href="admin-receipts.html" class="active">Qəbzlər</a>
+            <a href="/">Sayta Qayıt</a>
+        </div>
+        <div class="main-content">
+            <h1 class="mb-2">Gözləyən Qəbzlər</h1>
+            <div id="receipts-container" class="receipt-grid">
+                Yüklənir...
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="img-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+        <img id="modal-img" src="" style="max-width:90%; max-height:90%;">
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { checkAdmin, AdminReceipts } from './js/admin.js';
+
+        (async () => {
+            await checkAdmin();
+            loadReceipts();
+
+            document.getElementById('img-modal').addEventListener('click', () => {
+                document.getElementById('img-modal').style.display = 'none';
+            });
+        })();
+
+        async function loadReceipts() {
+            const { data: receipts } = await supabase
+                .from('receipts')
+                .select('*, users(email)')
+                .eq('status', 'waiting')
+                .order('created_at', { ascending: false });
+
+            const container = document.getElementById('receipts-container');
+
+            if (!receipts.length) {
+                container.innerHTML = '<p>Gözləyən qəbz yoxdur.</p>';
+                return;
+            }
+
+            // Get signed URLs for images
+            const receiptsWithUrls = await Promise.all(receipts.map(async (r) => {
+                const { data } = await supabase.storage.from('receipts').createSignedUrl(r.image_url, 3600);
+                return { ...r, signedUrl: data?.signedUrl };
+            }));
+
+            container.innerHTML = receiptsWithUrls.map(r => `
+                <div class="receipt-card card">
+                    <img src="${r.signedUrl}" class="receipt-img" onclick="openModal('${r.signedUrl}')">
+                    <div style="padding:1rem;">
+                        <p><strong>İstifadəçi:</strong> ${r.users?.email}</p>
+                        <p><strong>Məbləğ:</strong> ${r.amount_azn} AZN</p>
+                        <p><small>${new Date(r.created_at).toLocaleString()}</small></p>
+                        <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                            <button onclick="approve('${r.id}', '${r.user_id}')" class="btn btn-sm btn-primary" style="flex:1; background:var(--success);">Təsdiq</button>
+                            <button onclick="reject('${r.id}')" class="btn btn-sm btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger);">İmtina</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            window.openModal = (url) => {
+                document.getElementById('modal-img').src = url;
+                document.getElementById('img-modal').style.display = 'flex';
+            };
+
+            window.approve = (id, userId) => {
+                const amount = prompt('İstifadəçiyə köçürüləcək Tocoin miqdarı:', '0');
+                if (amount !== null) {
+                    AdminReceipts.approve(id, userId, amount);
+                }
+            };
+
+            window.reject = (id) => {
+                const reason = prompt('İmtina səbəbi:', 'Qəbz oxunmur');
+                if (reason !== null) {
+                    AdminReceipts.reject(id, reason);
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>
