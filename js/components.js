@@ -114,7 +114,7 @@ export function renderFooter() {
                 <div>
                     <h3>Əlaqə</h3>
                     <p>Bakı, Azərbaycan</p>
-                    <p>info@toysmarket.az</p>
+                    <p>abbaslif89@gmail.com</p>
                 </div>
             </div>
             <div class="footer-bottom">
