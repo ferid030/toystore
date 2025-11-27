@@ -12,11 +12,17 @@ export function renderNavbar(user) {
             <button class="mobile-menu-btn" style="display:none; background:none; font-size:1.5rem;">☰</button>
             <div class="nav-links">
                 <a href="/" class="active">Ana Səhifə</a>
-                <a href="/about.html">Haqqımızda</a>
-                <a href="/contact.html">Əlaqə</a>
+                <a href="#" onclick="checkAuthAndNavigate('/about.html'); return false;">Haqqımızda</a>
+                <a href="/buy-tocoin.html" style="color:var(--secondary-color); font-weight:600;">Tocoin Al</a>
+                <a href="#" onclick="checkAuthAndNavigate('/contact.html'); return false;">Əlaqə</a>
             </div>
             <div class="nav-actions">
-                <a href="/cart.html" class="cart-icon">
+                ${user ? `
+                    <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.2rem; margin-right:1rem;">
+                        🔔 <span class="notification-count" style="display:none; position:absolute; top:-8px; right:-8px; background:var(--danger); color:white; font-size:0.7rem; padding:2px 6px; border-radius:50%; min-width:18px; text-align:center;">0</span>
+                    </a>
+                ` : ''}
+                <a href="#" onclick="checkAuthAndNavigate('/cart.html'); return false;" class="cart-icon">
                     🛒 <span class="cart-count">0</span>
                 </a>
                 ${user ? `
@@ -33,7 +39,6 @@ export function renderNavbar(user) {
     const btn = nav.querySelector('.mobile-menu-btn');
     const links = nav.querySelector('.nav-links');
 
-    // Check if mobile
     if (window.innerWidth <= 768) {
         btn.style.display = 'block';
     }
@@ -42,7 +47,49 @@ export function renderNavbar(user) {
         links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
     });
 
+    // Auth check function for navigation
+    window.checkAuthAndNavigate = async (url) => {
+        const { getCurrentUser } = await import('./auth.js');
+        const { Toast } = await import('./components.js');
+        const currentUser = await getCurrentUser();
+
+        if (!currentUser) {
+            Toast.show('Bu səhifəyə daxil olmaq üçün qeydiyyatdan keçin', 'error');
+            setTimeout(() => window.location.href = '/login.html', 1000);
+            return;
+        }
+
+        window.location.href = url;
+    };
+
+    // Update notification count
+    if (user) {
+        updateNotificationCount();
+    }
+
     return nav;
+}
+
+// Function to update notification count
+async function updateNotificationCount() {
+    const { supabase } = await import('./supabase.js');
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+    const badge = document.querySelector('.notification-count');
+    if (badge && count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'block';
+    } else if (badge) {
+        badge.style.display = 'none';
+    }
 }
 
 // Footer Component

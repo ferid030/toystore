@@ -73,7 +73,6 @@ export const AdminReceipts = {
     approve: async (receiptId, userId, amountTocoin) => {
         Loader.show();
         try {
-            // 1. Update Receipt Status
             const { error: receiptError } = await supabase
                 .from('receipts')
                 .update({ status: 'confirmed', admin_note: 'Təsdiqləndi' })
@@ -81,7 +80,6 @@ export const AdminReceipts = {
 
             if (receiptError) throw receiptError;
 
-            // 2. Add Transaction
             const { error: txError } = await supabase
                 .from('tocoin_transactions')
                 .insert({
@@ -93,8 +91,6 @@ export const AdminReceipts = {
 
             if (txError) throw txError;
 
-            // 3. Update User Balance (RPC or manual fetch-update)
-            // Fetch current balance first to be safe
             const { data: user } = await supabase.from('users').select('tocoin_balance').eq('id', userId).single();
             const newBalance = (user.tocoin_balance || 0) + parseFloat(amountTocoin);
 
@@ -104,6 +100,14 @@ export const AdminReceipts = {
                 .eq('id', userId);
 
             if (balanceError) throw balanceError;
+
+            // Send notification
+            await supabase.from('notifications').insert({
+                user_id: userId,
+                title: '✅ Qəbz Təsdiqləndi',
+                message: `Sizin ${amountTocoin} AZN məbləğli qəbziniz təsdiqləndi və ${amountTocoin} Tocoin balansınıza əlavə edildi.`,
+                type: 'success'
+            });
 
             Toast.show('Qəbz təsdiqləndi və balans artırıldı!', 'success');
             setTimeout(() => window.location.reload(), 1000);
@@ -117,13 +121,62 @@ export const AdminReceipts = {
     reject: async (receiptId, reason) => {
         Loader.show();
         try {
+            const { data: receipt } = await supabase
+                .from('receipts')
+                .select('user_id, amount_azn')
+                .eq('id', receiptId)
+                .single();
+
             const { error } = await supabase
                 .from('receipts')
                 .update({ status: 'rejected', admin_note: reason })
                 .eq('id', receiptId);
 
             if (error) throw error;
+
+            // Send notification
+            if (receipt) {
+                await supabase.from('notifications').insert({
+                    user_id: receipt.user_id,
+                    title: '❌ Qəbz Rədd Edildi',
+                    message: `Sizin ${receipt.amount_azn} AZN məbləğli qəbziniz rədd edildi. Səbəb: ${reason}`,
+                    type: 'error'
+                });
+            }
+
             Toast.show('Qəbz imtina edildi.', 'info');
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error) {
+            Toast.show(error.message, 'error');
+        } finally {
+            Loader.hide();
+        }
+    }
+};
+
+// Manage Users
+export const AdminUsers = {
+    adjustBalance: async (userId, amount) => {
+        Loader.show();
+        try {
+            const { data: user } = await supabase.from('users').select('tocoin_balance').eq('id', userId).single();
+            const newBalance = (user.tocoin_balance || 0) + parseFloat(amount);
+
+            const { error } = await supabase
+                .from('users')
+                .update({ tocoin_balance: newBalance })
+                .eq('id', userId);
+
+            if (error) throw error;
+
+            await supabase.from('tocoin_transactions').insert({
+                user_id: userId,
+                amount: amount,
+                type: amount > 0 ? 'credit' : 'debit',
+                description: 'Admin tərəfindən balans düzəlişi'
+            });
+
+            Toast.show('Balans yeniləndi!', 'success');
             setTimeout(() => window.location.reload(), 1000);
         } catch (error) {
             Toast.show(error.message, 'error');

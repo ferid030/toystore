@@ -3,7 +3,7 @@ import { Cart } from './cart.js';
 import { getCurrentUser } from './auth.js';
 import { Loader, Toast } from './components.js';
 
-export async function processCardCheckout(file) {
+export async function processCardCheckout(file, location) {
     Loader.show();
     try {
         const user = await getCurrentUser();
@@ -14,7 +14,7 @@ export async function processCardCheckout(file) {
 
         const totalAmount = cart.reduce((acc, item) => acc + (item.price_azn * item.qty), 0);
 
-        // 1. Create Order
+        // 1. Create Order with location
         const { data: order, error: orderError } = await supabase
             .from('orders')
             .insert({
@@ -22,7 +22,9 @@ export async function processCardCheckout(file) {
                 items: cart,
                 total_amount_azn: totalAmount,
                 payment_method: 'card',
-                status: 'pending'
+                status: 'pending',
+                delivery_lat: location?.lat,
+                delivery_lng: location?.lng
             })
             .select()
             .single();
@@ -62,7 +64,7 @@ export async function processCardCheckout(file) {
     }
 }
 
-export async function processTocoinCheckout() {
+export async function processTocoinCheckout(location) {
     Loader.show();
     try {
         const user = await getCurrentUser();
@@ -80,15 +82,17 @@ export async function processTocoinCheckout() {
             throw new Error(`Balansınız kifayət etmir. Tələb olunan: ${totalTocoin}, Balans: ${user.tocoin_balance}`);
         }
 
-        // 1. Create Order
+        // 1. Create Order with location
         const { data: order, error: orderError } = await supabase
             .from('orders')
             .insert({
                 user_id: user.id,
                 items: cart,
-                total_amount_azn: 0, // Tocoin purchase
+                total_amount_azn: 0,
                 payment_method: 'tocoin',
-                status: 'paid'
+                status: 'paid',
+                delivery_lat: location?.lat,
+                delivery_lng: location?.lng
             })
             .select()
             .single();

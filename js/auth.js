@@ -36,6 +36,14 @@ export async function login(email, password) {
 
         if (error) throw error;
 
+        // Send login notification
+        await supabase.from('notifications').insert({
+            user_id: data.user.id,
+            title: '🔐 Hesaba Giriş',
+            message: `Hesabınıza uğurla giriş edildi. Tarix: ${new Date().toLocaleString('az-AZ')}`,
+            type: 'info'
+        });
+
         Toast.show('Giriş uğurlu oldu!', 'success');
         setTimeout(() => window.location.href = '/', 1000);
     } catch (error) {

@@ -74,7 +74,14 @@ async function loadToys() {
 
     // Add event listeners
     document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
+            const currentUser = await getCurrentUser();
+            if (!currentUser) {
+                Toast.show('Səbətə əlavə etmək üçün daxil olun', 'error');
+                setTimeout(() => window.location.href = '/login.html', 1000);
+                return;
+            }
+
             const id = e.target.dataset.id;
             const toy = toys.find(t => t.id === id);
             Cart.add(toy);

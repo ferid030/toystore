@@ -77,7 +77,6 @@
 
     <div class="container mt-2 fade-in">
         <div id="product-details" class="product-container">
-            <!-- Content injected here -->
             <p>Yüklənir...</p>
         </div>
     </div>
@@ -118,13 +117,10 @@
                 return;
             }
 
-            // Parse features if it's a string, otherwise use as is
             let features = toy.features;
             if (typeof features === 'string') {
                 try { features = JSON.parse(features); } catch (e) { features = {}; }
             }
-
-            // If features is null/undefined, make it empty object
             features = features || {};
 
             const featuresHtml = Object.entries(features).map(([key, value]) => `
@@ -160,12 +156,23 @@
                 </div>
             `;
 
-            // Expose functions to window for onclick
-            window.addToCart = (id) => {
+            window.addToCart = async (id) => {
+                const currentUser = await getCurrentUser();
+                if (!currentUser) {
+                    Toast.show('Səbətə əlavə etmək üçün daxil olun', 'error');
+                    setTimeout(() => window.location.href = '/login.html', 1000);
+                    return;
+                }
                 Cart.add(toy);
             };
 
-            window.buyNow = (id) => {
+            window.buyNow = async (id) => {
+                const currentUser = await getCurrentUser();
+                if (!currentUser) {
+                    Toast.show('Alış-veriş etmək üçün daxil olun', 'error');
+                    setTimeout(() => window.location.href = '/login.html', 1000);
+                    return;
+                }
                 Cart.add(toy);
                 window.location.href = '/cart.html';
             };

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bildirişlər - Toys Market</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .notifications-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .notification-item {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .notification-item.unread {
+            background: #f0f8ff;
+            border-left-color: var(--secondary-color);
+        }
+
+        .notification-item.success {
+            border-left-color: var(--success);
+        }
+
+        .notification-item.error {
+            border-left-color: var(--danger);
+        }
+
+        .notification-item.warning {
+            border-left-color: #FFA500;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .notification-time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .notification-message {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <div class="notifications-container fade-in">
+        <h1>📬 Bildirişlər</h1>
+        <div id="notifications-list">
+            <p>Yüklənir...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { renderNavbar, renderFooter, Loader, Toast } from './js/components.js';
+        import { getCurrentUser } from './js/auth.js';
+
+        (async () => {
+            Loader.show();
+            const user = await getCurrentUser();
+
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            document.getElementById('app').appendChild(renderNavbar(user));
+            document.getElementById('app').appendChild(renderFooter());
+
+            await loadNotifications();
+            Loader.hide();
+        })();
+
+        async function loadNotifications() {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Fetch notifications
+            const { data: notifications, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            const container = document.getElementById('notifications-list');
+
+            if (error) {
+                container.innerHTML = '<p class="empty-state">Xəta baş verdi</p>';
+                return;
+            }
+
+            if (!notifications || notifications.length === 0) {
+                container.innerHTML = '<p class="empty-state">Hələ bildiriş yoxdur</p>';
+                return;
+            }
+
+            container.innerHTML = notifications.map(notif => {
+                const timeAgo = getTimeAgo(new Date(notif.created_at));
+                return `
+                    <div class="notification-item ${!notif.is_read ? 'unread' : ''} ${notif.type}">
+                        <div class="notification-header">
+                            <div class="notification-title">${notif.title}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                        </div>
+                        <div class="notification-message">${notif.message}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Mark all as read
+            await supabase
+                .from('notifications')
+                .update({ is_read: true })
+                .eq('user_id', user.id)
+                .eq('is_read', false);
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+
+            if (seconds < 60) return 'İndicə';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' dəqiqə əvvəl';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' saat əvvəl';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + ' gün əvvəl';
+
+            return date.toLocaleDateString('az-AZ');
+        }
+    </script>
+</body>
+
+</html>

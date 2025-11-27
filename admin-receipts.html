@@ -67,6 +67,11 @@
             object-fit: contain;
             background: #f9f9f9;
             cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .receipt-img:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
@@ -78,6 +83,8 @@
             <a href="admin.html">Dashboard</a>
             <a href="admin-toys.html">Oyuncaqlar</a>
             <a href="admin-receipts.html" class="active">Qəbzlər</a>
+            <a href="admin-users.html">İstifadəçilər</a>
+            <a href="admin-orders.html">Sifarişlər</a>
             <a href="/">Sayta Qayıt</a>
         </div>
         <div class="main-content">
@@ -90,8 +97,10 @@
 
     <!-- Image Modal -->
     <div id="img-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-        <img id="modal-img" src="" style="max-width:90%; max-height:90%;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; justify-content:center; align-items:center; cursor:pointer;">
+        <button onclick="closeModal()"
+            style="position:absolute; top:20px; right:20px; background:white; border:none; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; z-index:2001;">×</button>
+        <img id="modal-img" src="" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px;">
     </div>
 
     <script type="module">
@@ -102,9 +111,9 @@
             await checkAdmin();
             loadReceipts();
 
-            document.getElementById('img-modal').addEventListener('click', () => {
+            window.closeModal = () => {
                 document.getElementById('img-modal').style.display = 'none';
-            });
+            };
         })();
 
         async function loadReceipts() {
@@ -116,7 +125,7 @@
 
             const container = document.getElementById('receipts-container');
 
-            if (!receipts.length) {
+            if (!receipts || receipts.length === 0) {
                 container.innerHTML = '<p>Gözləyən qəbz yoxdur.</p>';
                 return;
             }
@@ -129,14 +138,14 @@
 
             container.innerHTML = receiptsWithUrls.map(r => `
                 <div class="receipt-card card">
-                    <img src="${r.signedUrl}" class="receipt-img" onclick="openModal('${r.signedUrl}')">
+                    <img src="${r.signedUrl}" class="receipt-img" onclick="openModal('${r.signedUrl}')" title="Tam ekranda görmək üçün klikləyin">
                     <div style="padding:1rem;">
                         <p><strong>İstifadəçi:</strong> ${r.users?.email}</p>
-                        <p><strong>Məbləğ:</strong> ${r.amount_azn} AZN</p>
-                        <p><small>${new Date(r.created_at).toLocaleString()}</small></p>
+                        <p><strong>Məbləğ:</strong> <span style="color:var(--primary-color); font-size:1.2rem; font-weight:600;">${r.amount_azn} AZN</span></p>
+                        <p><small style="color:#666;">${new Date(r.created_at).toLocaleString('az-AZ')}</small></p>
                         <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                            <button onclick="approve('${r.id}', '${r.user_id}')" class="btn btn-sm btn-primary" style="flex:1; background:var(--success);">Təsdiq</button>
-                            <button onclick="reject('${r.id}')" class="btn btn-sm btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger);">İmtina</button>
+                            <button onclick="approve('${r.id}', '${r.user_id}', ${r.amount_azn})" class="btn btn-sm btn-primary" style="flex:1; background:var(--success);">✓ Təsdiq</button>
+                            <button onclick="reject('${r.id}')" class="btn btn-sm btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger);">✗ İmtina</button>
                         </div>
                     </div>
                 </div>
@@ -147,9 +156,9 @@
                 document.getElementById('img-modal').style.display = 'flex';
             };
 
-            window.approve = (id, userId) => {
-                const amount = prompt('İstifadəçiyə köçürüləcək Tocoin miqdarı:', '0');
-                if (amount !== null) {
+            window.approve = (id, userId, amountAzn) => {
+                const amount = prompt('İstifadəçiyə köçürüləcək Tocoin miqdarı:', amountAzn || '0');
+                if (amount !== null && amount !== '') {
                     AdminReceipts.approve(id, userId, amount);
                 }
             };

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .cart-item {
@@ -46,15 +47,11 @@
 </head>
 
 <body>
-    <div id="app">
-        <!-- Navbar injected here -->
-    </div>
+    <div id="app"></div>
 
     <div class="container mt-2 fade-in">
         <h1>Səbətiniz</h1>
-        <div id="cart-items">
-            <!-- Items injected here -->
-        </div>
+        <div id="cart-items"></div>
 
         <div id="cart-summary" class="checkout-section" style="display:none;">
             <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
@@ -76,19 +73,36 @@
                     <p>Ödənişi etdikdən sonra qəbzin şəklini yükləyin.</p>
                 </div>
                 <input type="file" id="receipt-upload" accept="image/*" class="mb-1">
-                <button class="btn btn-primary" onclick="handleCardCheckout()">Sifarişi Tamamla</button>
+                <button class="btn btn-primary" onclick="proceedToLocation('card')">Davam et</button>
             </div>
 
             <div id="tocoin-payment" style="display:none;">
                 <p class="mb-1">Balansınız: <span id="user-balance">0</span> Tocoin</p>
                 <p class="mb-1">Tələb olunan: <span id="required-tocoin">0</span> Tocoin</p>
-                <button class="btn btn-secondary" onclick="handleTocoinCheckout()">Tocoin ilə Al</button>
+                <button class="btn btn-secondary" onclick="proceedToLocation('tocoin')">Davam et</button>
                 <div id="balance-error" style="color:red; display:none; margin-top:0.5rem;">
                     Balansınız kifayət etmir. <a href="/profile.html">Balansı artır</a>
                 </div>
             </div>
+
+            <div id="delivery-location" style="display:none; margin-top:2rem;">
+                <h4>📍 Çatdırılma Ünvanı</h4>
+                <p style="color:#666; margin-bottom:1rem;">Xəritədə çatdırılma ünvanını seçin (marker-i sürüşdürün və ya
+                    xəritəyə klikləyin)</p>
+
+                <div id="map" style="height:400px; border-radius:var(--radius-sm); margin-bottom:1rem;"></div>
+
+                <div style="background:#f0f8ff; padding:1rem; border-radius:var(--radius-sm); margin-bottom:1rem;">
+                    <p><strong>Seçilmiş ünvan:</strong></p>
+                    <p id="selected-address" style="color:#666;">Xəritə yüklənir...</p>
+                </div>
+
+                <button class="btn btn-primary" onclick="completeOrder()" style="width:100%;">Sifarişi Təsdiqlə</button>
+            </div>
         </div>
     </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script type="module">
         import { renderNavbar, Loader, Toast } from './js/components.js';
@@ -97,6 +111,9 @@
         import { processCardCheckout, processTocoinCheckout } from './js/checkout.js';
 
         let currentUser = null;
+        let map, marker;
+        let selectedLocation = null;
+        let selectedPaymentMethod = null;
 
         async function init() {
             currentUser = await getCurrentUser();
@@ -164,17 +181,113 @@
             }
         };
 
-        window.handleCardCheckout = async () => {
-            const fileInput = document.getElementById('receipt-upload');
-            if (fileInput.files.length === 0) {
-                Toast.show('Zəhmət olmasa qəbz şəklini yükləyin.', 'error');
-                return;
+        window.proceedToLocation = (method) => {
+            selectedPaymentMethod = method;
+
+            if (method === 'card') {
+                const fileInput = document.getElementById('receipt-upload');
+                if (fileInput.files.length === 0) {
+                    Toast.show('Zəhmət olmasa qəbz şəklini yükləyin.', 'error');
+                    return;
+                }
+            } else if (method === 'tocoin') {
+                const cart = Cart.get();
+                const totalTocoin = cart.reduce((acc, item) => acc + ((item.tocoin_price || 0) * item.qty), 0);
+                if (!currentUser || currentUser.tocoin_balance < totalTocoin) {
+                    Toast.show('Balansınız kifayət etmir', 'error');
+                    return;
+                }
             }
-            await processCardCheckout(fileInput.files[0]);
+
+            document.getElementById('payment-methods').style.display = 'none';
+            document.getElementById('card-payment').style.display = 'none';
+            document.getElementById('tocoin-payment').style.display = 'none';
+            document.getElementById('delivery-location').style.display = 'block';
+
+            setTimeout(() => initMap(), 100);
         };
 
-        window.handleTocoinCheckout = async () => {
-            await processTocoinCheckout();
+        function initMap() {
+            const baku = [40.4093, 49.8671];
+
+            map = L.map('map').setView(baku, 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            marker = L.marker(baku, {
+                draggable: true,
+                title: 'Çatdırılma ünvanı'
+            }).addTo(map);
+
+            selectedLocation = { lat: baku[0], lng: baku[1] };
+
+            marker.on('dragend', function (e) {
+                const position = marker.getLatLng();
+                selectedLocation = {
+                    lat: position.lat,
+                    lng: position.lng
+                };
+                getAddress(position.lat, position.lng);
+            });
+
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                selectedLocation = {
+                    lat: e.latlng.lat,
+                    lng: e.latlng.lng
+                };
+                getAddress(e.latlng.lat, e.latlng.lng);
+            });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const pos = [position.coords.latitude, position.coords.longitude];
+                    map.setView(pos, 14);
+                    marker.setLatLng(pos);
+                    selectedLocation = { lat: pos[0], lng: pos[1] };
+                    getAddress(pos[0], pos[1]);
+                }, (error) => {
+                    console.log('Geolocation error:', error);
+                    getAddress(baku[0], baku[1]);
+                });
+            } else {
+                getAddress(baku[0], baku[1]);
+            }
+        }
+
+        function getAddress(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=az`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('selected-address').textContent = data.display_name;
+                    } else {
+                        document.getElementById('selected-address').textContent = `Koordinatlar: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Geocoding error:', error);
+                    document.getElementById('selected-address').textContent = `Koordinatlar: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                });
+        }
+
+        window.completeOrder = async () => {
+            if (!selectedLocation) {
+                Toast.show('Zəhmət olmasa çatdırılma ünvanını seçin', 'error');
+                return;
+            }
+
+            Loader.show();
+
+            if (selectedPaymentMethod === 'card') {
+                const fileInput = document.getElementById('receipt-upload');
+                await processCardCheckout(fileInput.files[0], selectedLocation);
+            } else {
+                await processTocoinCheckout(selectedLocation);
+            }
         };
 
         init();
