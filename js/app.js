@@ -4,36 +4,16 @@ import { getCurrentUser } from './auth.js';
 import { Cart } from './cart.js';
 
 async function init() {
-    Loader.show();
     const user = await getCurrentUser();
-    document.getElementById('app').innerHTML = ''; // Clear loading
+    document.getElementById('app').innerHTML = '';
     document.getElementById('app').appendChild(renderNavbar(user));
 
-    const main = document.createElement('main');
-    main.className = 'container mt-2';
-    main.innerHTML = `
-        <div class="hero-section text-center mb-2">
-            <h1>Uşaq Oyuncaqları Bazarı</h1>
-            <p>Ən keyfiyyətli və maraqlı oyuncaqlar bizdə!</p>
-        </div>
-        
-        <div class="filters mb-2" style="display:flex; gap:1rem; justify-content:center;">
-            <button class="btn btn-outline active" data-filter="all">Hamısı</button>
-            <button class="btn btn-outline" data-filter="lego">Lego</button>
-            <button class="btn btn-outline" data-filter="doll">Gəlinciklər</button>
-            <button class="btn btn-outline" data-filter="car">Maşınlar</button>
-        </div>
-
-        <div id="toys-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem;">
-            <!-- Toys will be injected here -->
-        </div>
-    `;
-    document.getElementById('app').appendChild(main);
-    document.getElementById('app').appendChild(renderFooter());
-
     await loadToys();
+
+    const footer = renderFooter();
+    document.body.appendChild(footer);
+
     Cart.updateCount();
-    Loader.hide();
 }
 
 async function loadToys() {
@@ -48,44 +28,64 @@ async function loadToys() {
         return;
     }
 
-    const grid = document.getElementById('toys-grid');
+    const container = document.getElementById('products-container');
+
     if (toys.length === 0) {
-        grid.innerHTML = '<p class="text-center" style="grid-column: 1/-1">Hal-hazırda məhsul yoxdur.</p>';
+        container.innerHTML = '<p class="text-center" style="grid-column: 1/-1; color: #718096;">Hal-hazırda məhsul yoxdur.</p>';
         return;
     }
 
-    grid.innerHTML = toys.map(toy => `
-        <div class="toy-card" style="border: 1px solid #eee; border-radius: var(--radius-sm); overflow: hidden; transition: transform 0.3s;">
+    container.innerHTML = toys.map((toy, index) => `
+        <div class="product-card" style="animation-delay: ${index * 0.1}s;">
+            ${toy.discount ? `<div class="product-badge">-${toy.discount}%</div>` : ''}
             <a href="/product.html?id=${toy.id}" style="text-decoration:none; color:inherit;">
-                <div style="height: 200px; overflow: hidden;">
-                    <img src="${toy.image_url || 'https://placehold.co/300x200?text=No+Image'}" alt="${toy.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div style="padding: 1rem;">
-                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">${toy.name}</h3>
-                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">${toy.price_azn} AZN</p>
-                    ${toy.tocoin_price ? `<p style="color: var(--secondary-color); font-weight: 600; font-size: 0.9rem;">${toy.tocoin_price} Tocoin</p>` : ''}
+                <img src="${toy.image_url || 'https://placehold.co/400x300?text=Oyuncaq'}" 
+                     alt="${toy.name}" 
+                     class="product-image">
+                <div class="product-info">
+                    <div class="product-name">${toy.name}</div>
+                    <div class="product-price">${toy.price_azn} AZN</div>
+                    ${toy.tocoin_price ? `<div style="color: #f5576c; font-weight: 600; font-size: 0.95rem; margin-bottom: 1rem;">💰 ${toy.tocoin_price} Tocoin</div>` : ''}
                 </div>
             </a>
-            <div style="padding: 0 1rem 1rem 1rem;">
-                <button class="btn btn-primary btn-sm mt-1 add-to-cart" data-id="${toy.id}" style="width: 100%">Səbətə at</button>
+            <div style="padding: 0 1.5rem 1.5rem;">
+                <button class="add-to-cart-btn" data-id="${toy.id}">
+                    🛒 Səbətə Əlavə Et
+                </button>
             </div>
         </div>
     `).join('');
 
-    // Add event listeners
-    document.querySelectorAll('.add-to-cart').forEach(btn => {
+    // Add event listeners for cart buttons
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            e.preventDefault();
             const currentUser = await getCurrentUser();
+
             if (!currentUser) {
                 Toast.show('Səbətə əlavə etmək üçün daxil olun', 'error');
-                setTimeout(() => window.location.href = '/login.html', 1000);
+                setTimeout(() => window.location.href = '/login.html', 1500);
                 return;
             }
 
             const id = e.target.dataset.id;
             const toy = toys.find(t => t.id === id);
             Cart.add(toy);
+
+            // Button animation
+            e.target.textContent = '✓ Əlavə Edildi';
+            e.target.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+            setTimeout(() => {
+                e.target.textContent = '🛒 Səbətə Əlavə Et';
+                e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }, 2000);
         });
+    });
+
+    // Smooth scroll for hero button
+    document.querySelector('.hero-btn-primary')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
     });
 }
 
