@@ -41,42 +41,70 @@
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="navbar"></div>
 
     <div class="container mt-2 fade-in">
         <div class="contact-form">
             <h2 class="text-center mb-2">Bizimlə Əlaqə</h2>
             <form id="contact-form">
+                <input type="hidden" name="_subject" value="Yeni mesaj - Toys Market">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
+
                 <div class="form-group">
                     <label>Adınız</label>
-                    <input type="text" required>
+                    <input type="text" name="name" required>
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" required>
+                    <input type="email" name="email" required>
                 </div>
                 <div class="form-group">
                     <label>Mesajınız</label>
-                    <textarea rows="5" required></textarea>
+                    <textarea name="message" rows="5" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%">Göndər</button>
             </form>
         </div>
     </div>
 
+    <div id="footer"></div>
+
     <script type="module">
-        import { renderNavbar, renderFooter, Toast } from './js/components.js';
+        import { renderNavbar, renderFooter, Toast, Loader } from './js/components.js';
         import { getCurrentUser } from './js/auth.js';
 
         (async () => {
             const user = await getCurrentUser();
-            document.getElementById('app').appendChild(renderNavbar(user));
-            document.getElementById('app').appendChild(renderFooter());
+            document.getElementById('navbar').appendChild(renderNavbar(user));
+            document.getElementById('footer').appendChild(renderFooter());
 
-            document.getElementById('contact-form').addEventListener('submit', (e) => {
+            document.getElementById('contact-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                Toast.show('Mesajınız göndərildi! Tezliklə sizinlə əlaqə saxlayacağıq.', 'success');
-                e.target.reset();
+                Loader.show();
+
+                const formData = new FormData(e.target);
+
+                try {
+                    const response = await fetch("https://formsubmit.co/ajax/abbaslif89@gmail.com", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Toast.show('Mesajınız uğurla göndərildi! Tezliklə sizinlə əlaqə saxlayacağıq.', 'success');
+                        e.target.reset();
+                    } else {
+                        throw new Error(data.message || 'Xəta baş verdi');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Toast.show('Mesaj göndərilərkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.', 'error');
+                } finally {
+                    Loader.hide();
+                }
             });
         })();
     </script>

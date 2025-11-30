@@ -74,7 +74,7 @@
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="navbar"></div>
 
     <div class="notifications-container fade-in">
         <h1>📬 Bildirişlər</h1>
@@ -82,6 +82,8 @@
             <p>Yüklənir...</p>
         </div>
     </div>
+
+    <div id="footer"></div>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
@@ -97,8 +99,8 @@
                 return;
             }
 
-            document.getElementById('app').appendChild(renderNavbar(user));
-            document.getElementById('app').appendChild(renderFooter());
+            document.getElementById('navbar').appendChild(renderNavbar(user));
+            document.getElementById('footer').appendChild(renderFooter());
 
             await loadNotifications();
             Loader.hide();

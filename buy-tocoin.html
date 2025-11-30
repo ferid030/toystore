@@ -87,11 +87,31 @@
             font-weight: 600;
             flex-shrink: 0;
         }
+
+        @media (max-width: 480px) {
+            .buy-tocoin-container {
+                padding: 1rem;
+                margin: 1rem auto;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .bank-card {
+                padding: 1.5rem;
+                min-height: 180px;
+            }
+
+            .card-number {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="navbar"></div>
 
     <div class="buy-tocoin-container fade-in">
         <h1 class="text-center" style="color: var(--secondary-color);">💰 Tocoin Al</h1>
@@ -166,6 +186,8 @@
         </div>
     </div>
 
+    <div id="footer"></div>
+
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { renderNavbar, renderFooter, Loader, Toast } from './js/components.js';
@@ -180,8 +202,8 @@
                 return;
             }
 
-            document.getElementById('app').appendChild(renderNavbar(user));
-            document.getElementById('app').appendChild(renderFooter());
+            document.getElementById('navbar').appendChild(renderNavbar(user));
+            document.getElementById('footer').appendChild(renderFooter());
 
             // Image preview
             document.getElementById('receipt-image').addEventListener('change', (e) => {

@@ -30,7 +30,7 @@
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="navbar"></div>
 
     <div class="container mt-2 fade-in">
         <div class="about-content">
@@ -47,6 +47,8 @@
         </div>
     </div>
 
+    <div id="footer"></div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -56,8 +58,8 @@
 
         (async () => {
             const user = await getCurrentUser();
-            document.getElementById('app').appendChild(renderNavbar(user));
-            document.getElementById('app').appendChild(renderFooter());
+            document.getElementById('navbar').appendChild(renderNavbar(user));
+            document.getElementById('footer').appendChild(renderFooter());
 
             // Initialize Map
             const map = L.map('map').setView([40.3807491, 49.8511914], 15);
