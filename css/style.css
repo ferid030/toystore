@@ -305,6 +305,154 @@ button {
 
 /* Responsive Design */
 
+/* Admin Panel Styles */
+.admin-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    min-height: 100vh;
+}
+
+.sidebar {
+    background-color: var(--dark-color);
+    color: var(--white);
+    padding: 2rem 1rem;
+    transition: transform 0.3s ease;
+}
+
+.sidebar a {
+    display: block;
+    padding: 1rem;
+    color: #aaa;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    transform: translateX(5px);
+}
+
+.main-content {
+    padding: 2rem;
+    background-color: #f4f6f8;
+}
+
+.card {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+
+/* Admin Tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+/* Admin Badges */
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge.pending,
+.badge.waiting {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge.paid,
+.badge.approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.cancelled,
+.badge.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Admin Grid Utilities */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+}
+
+/* Receipt Styles */
+.receipt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.receipt-card {
+    border: 1px solid #eee;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.receipt-img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.receipt-img:hover {
+    transform: scale(1.02);
+}
+
+/* Responsive Design */
+
 /* Tablet (max-width: 768px) */
 @media (max-width: 768px) {
     .navbar .container {
@@ -351,24 +499,45 @@ button {
         flex-wrap: wrap;
     }
 
+    /* Admin Responsive */
     .admin-layout {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 
     .sidebar {
-        display: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 1rem;
+        overflow-x: auto;
+        white-space: nowrap;
     }
 
-    .product-container {
-        grid-template-columns: 1fr !important;
+    .sidebar h2 {
+        width: 100%;
+        padding-left: 0 !important;
+        margin-bottom: 1rem !important;
+        text-align: center;
+    }
+
+    .sidebar a {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        transform: none;
     }
 
     .dashboard-stats {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 
     .form-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 }
 
@@ -398,5 +567,19 @@ button {
     .footer-content {
         grid-template-columns: 1fr;
         text-align: center;
+    }
+
+    /* Ensure tables can scroll on mobile */
+    .card {
+        padding: 1rem;
+        overflow: hidden;
+        /* Prevent card overflow from contents */
+    }
+
+    .table-responsive {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 }
