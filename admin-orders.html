@@ -42,8 +42,15 @@
                 <h3>📍 Çatdırılma Ünvanı</h3>
                 <button class="close-btn" onclick="closeLocationModal()">Bağla</button>
             </div>
-            <div id="location-address" style="background:#f0f8ff; padding:1rem; border-radius:8px; margin-bottom:1rem;">
-                <strong>Ünvan:</strong> <span id="address-text">Yüklənir...</span>
+            <div id="location-address"
+                style="background:#f0f8ff; padding:1rem; border-radius:8px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>Ünvan:</strong> <span id="address-text">Yüklənir...</span>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button onclick="copyAddress()" class="btn btn-sm btn-outline">Kopyala</button>
+                    <button onclick="shareLocation()" class="btn btn-sm btn-primary">Paylaş</button>
+                </div>
             </div>
             <div id="location-map"></div>
         </div>
@@ -55,6 +62,7 @@
 
         let locationMap = null;
         let locationMarker = null;
+        let currentCoords = null; // Store {lat, lng}
 
         (async () => {
             await checkAdmin();
@@ -112,8 +120,10 @@
         }
 
         window.showLocation = function (lat, lng) {
+            currentCoords = { lat, lng };
             const modal = document.getElementById('location-modal');
             modal.classList.add('active');
+            document.getElementById('address-text').textContent = 'Yüklənir...';
 
             // Initialize map
             if (!locationMap) {
@@ -131,11 +141,12 @@
             }
 
             // Get address
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=az`)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=az`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.display_name) {
-                        document.getElementById('address-text').textContent = data.display_name;
+                        const coords = `(${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+                        document.getElementById('address-text').innerHTML = `${data.display_name} <br><small style="color:#666; font-weight:normal;">${coords}</small>`;
                     } else {
                         document.getElementById('address-text').textContent = `Koordinatlar: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                     }
@@ -148,6 +159,37 @@
             setTimeout(() => {
                 locationMap.invalidateSize();
             }, 100);
+        };
+
+        window.copyAddress = function () {
+            if (!currentCoords) return;
+            const text = `${currentCoords.lat}, ${currentCoords.lng}`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Koordinatlar kopyalandı!');
+            }).catch(err => {
+                console.error('Kopyalama xətası:', err);
+                alert('Kopyalama uğursuz oldu.');
+            });
+        };
+
+        window.shareLocation = async function () {
+            if (!currentCoords) return;
+            const url = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Çatdırılma Ünvanı',
+                        text: `Çatdırılma ünvanı: ${currentCoords.lat}, ${currentCoords.lng}`,
+                        url: url
+                    });
+                } catch (err) {
+                    console.error('Paylaşım xətası:', err);
+                    window.open(url, '_blank');
+                }
+            } else {
+                window.open(url, '_blank');
+            }
         };
 
         window.closeLocationModal = function () {
