@@ -68,6 +68,22 @@ export async function logout() {
 
 export async function getCurrentUser() {
     const { data: { user } } = await supabase.auth.getUser();
+
+    const path = window.location.pathname;
+    const isAuthPage = path.includes('login.html') || path.includes('register.html');
+
+    // If not logged in and not on auth page -> redirect to login
+    if (!user && !isAuthPage) {
+        window.location.href = '/login.html';
+        return null;
+    }
+
+    // If logged in and on auth page -> redirect to home
+    if (user && isAuthPage) {
+        window.location.href = '/';
+        return user;
+    }
+
     if (!user) return null;
 
     // Fetch public profile
