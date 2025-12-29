@@ -13,25 +13,10 @@ export function renderNavbar(user) {
     nav.className = isHome ? 'navbar navbar-home' : 'navbar';
 
     nav.innerHTML = `
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+        <div class="container" style="display: flex; align-items: center; position: relative;">
             <a href="/" class="logo">
                 Toys Market 🎈
             </a>
-            
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
-                    ${user ? `
-                        <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.2rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center;">
-                            🔔 <span class="notification-count" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--primary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
-                        </a>
-                    ` : ''}
-                    
-                    <a href="/cart.html" class="cart-icon" style="position:relative; font-size:1.2rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center;">
-                        🛒 <span class="cart-count" style="position:absolute; top:-2px; right:-2px; background:var(--secondary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
-                    </a>
-                </div>
-                <button class="mobile-menu-btn">☰</button>
-            </div>
             
             <div class="nav-links">
                 <a href="/" class="${isHome ? 'active' : ''}">Ana Səhifə</a>
@@ -48,8 +33,22 @@ export function renderNavbar(user) {
                     `}
                 </div>
             </div>
+
+            <div class="nav-actions">
+                ${user ? `
+                    <a href="/notifications.html" class="notification-icon">
+                        🔔 <span class="notification-count" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--primary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
+                    </a>
+                ` : ''}
+                
+                <a href="/cart.html" class="cart-icon">
+                    🛒 <span class="cart-count" style="position:absolute; top:-2px; right:-2px; background:var(--secondary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
+                </a>
+            </div>
+
+            <button class="mobile-menu-btn">☰</button>
             
-            <div class="desktop-only-auth" style="display: flex; align-items: center; gap: 15px;">
+            <div class="desktop-only-auth">
                 ${user ? `
                     <div style="display: flex; gap: 10px;">
                         <a href="/profile.html" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.9rem; font-weight: 700;">👤 Profil</a>
@@ -78,7 +77,8 @@ export function renderNavbar(user) {
     const links = nav.querySelector('.nav-links');
 
     if (btn) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             links.classList.toggle('active');
             btn.innerHTML = links.classList.contains('active') ? '✕' : '☰';
             document.body.style.overflow = links.classList.contains('active') ? 'hidden' : '';
