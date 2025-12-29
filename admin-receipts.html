@@ -8,105 +8,173 @@
     <title>Qəbzlər - Admin Panel</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-receipt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .receipt-card {
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .receipt-thumb {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .receipt-thumb:hover {
+            transform: scale(1.02);
+        }
+
+        .receipt-details {
+            padding: 20px;
+        }
+
+        .receipt-user {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .receipt-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .receipt-date {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="preloader">
+        <div class="loader-toy">🧾</div>
+    </div>
+
     <div class="admin-layout">
-        <div class="sidebar">
-            <h2 style="padding-left:1rem; margin-bottom:2rem;">Admin Panel</h2>
-            <a href="admin.html">Dashboard</a>
-            <a href="admin-toys.html">Oyuncaqlar</a>
-            <a href="admin-receipts.html" class="active">Qəbzlər</a>
-            <a href="admin-users.html">İstifadəçilər</a>
-            <a href="admin-orders.html">Sifarişlər</a>
-            <a href="/">Sayta Qayıt</a>
-        </div>
-        <div class="main-content">
-            <h1 class="mb-2">Gözləyən Qəbzlər</h1>
-            <div id="receipts-container" class="receipt-grid">
-                Yüklənir...
+        <aside class="admin-sidebar">
+            <h2>Toys Market</h2>
+            <nav class="admin-nav">
+                <a href="admin.html"><span>📊</span> <span>Dashboard</span></a>
+                <a href="admin-toys.html"><span>🧸</span> <span>Oyuncaqlar</span></a>
+                <a href="admin-receipts.html" class="active"><span>🧾</span> <span>Qəbzlər</span></a>
+                <a href="admin-users.html"><span>👥</span> <span>İstifadəçilər</span></a>
+                <a href="admin-orders.html"><span>📦</span> <span>Sifarişlər</span></a>
+                <hr style="opacity: 0.1; margin: 10px 0;">
+                <a href="/"><span>🏠</span> <span>Sayta Qayıt</span></a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header reveal">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800;">Qəbzlərin Təsdiqlənməsi 🧾</h1>
+                    <p style="color: var(--text-muted);">İstifadəçilərin yüklədiyi ödəniş qəbzlərini yoxlayın.</p>
+                </div>
+            </header>
+
+            <div id="receipts-container" class="admin-receipt-grid reveal">
+                <!-- Data goes here -->
             </div>
-        </div>
+        </main>
     </div>
 
     <!-- Image Modal -->
     <div id="img-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; justify-content:center; align-items:center; cursor:pointer;">
-        <button onclick="closeModal()"
-            style="position:absolute; top:20px; right:20px; background:white; border:none; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; z-index:2001;">×</button>
-        <img id="modal-img" src="" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; cursor:pointer;"
+        onclick="this.style.display='none'">
+        <img id="modal-img" src=""
+            style="max-width:90%; max-height:90%; object-fit:contain; border-radius:15px; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { checkAdmin, AdminReceipts } from './js/admin.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        (async () => {
+        async function init() {
+            initPreloader();
             await checkAdmin();
-            loadReceipts();
-
-            window.closeModal = () => {
-                document.getElementById('img-modal').style.display = 'none';
-            };
-        })();
+            await loadReceipts();
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
 
         async function loadReceipts() {
             const { data: receipts } = await supabase
                 .from('receipts')
-                .select('*, users(email)')
+                .select('*, users(email, full_name)')
                 .eq('status', 'waiting')
                 .order('created_at', { ascending: false });
 
             const container = document.getElementById('receipts-container');
 
             if (!receipts || receipts.length === 0) {
-                container.innerHTML = '<p>Gözləyən qəbz yoxdur.</p>';
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 100px; opacity: 0.5;"><h3>Hazırda gözləyən qəbz yoxdur. ✨</h3></div>';
                 return;
             }
 
-            // Get signed URLs for images
             const receiptsWithUrls = await Promise.all(receipts.map(async (r) => {
                 const { data } = await supabase.storage.from('receipts').createSignedUrl(r.image_url, 3600);
                 return { ...r, signedUrl: data?.signedUrl };
             }));
 
-            container.innerHTML = receiptsWithUrls.map(r => `
-                <div class="receipt-card card">
-                    <img src="${r.signedUrl}" class="receipt-img" onclick="openModal('${r.signedUrl}')" title="Tam ekranda görmək üçün klikləyin">
-                    <div style="padding:1rem;">
-                        <p><strong>İstifadəçi:</strong> ${r.users?.email}</p>
-                        <p><strong>Məbləğ:</strong> <span style="color:var(--primary-color); font-size:1.2rem; font-weight:600;">${r.amount_azn} AZN</span></p>
-                        <p><small style="color:#666;">${new Date(r.created_at).toLocaleString('az-AZ')}</small></p>
-                        <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                            <button onclick="approve('${r.id}', '${r.user_id}', ${r.amount_azn})" class="btn btn-sm btn-primary" style="flex:1; background:var(--success);">✓ Təsdiq</button>
-                            <button onclick="reject('${r.id}')" class="btn btn-sm btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger);">✗ İmtina</button>
+            container.innerHTML = receiptsWithUrls.map((r, idx) => `
+                <div class="glass-card receipt-card reveal" style="transition-delay: ${idx * 100}ms;">
+                    <img src="${r.signedUrl}" class="receipt-thumb" onclick="openFullImage('${r.signedUrl}')">
+                    <div class="receipt-details">
+                        <div class="receipt-user">${r.users?.full_name || 'Naməlum'}</div>
+                        <div style="font-size: 0.75rem; color: #777; margin-bottom: 10px;">${r.users?.email}</div>
+                        <div class="receipt-amount">${r.amount_azn} AZN</div>
+                        <div class="receipt-date">🕒 ${new Date(r.created_at).toLocaleString('az-AZ')}</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="approveReceipt('${r.id}', '${r.user_id}', ${r.amount_azn})" class="btn btn-primary" style="flex:1; padding: 8px;">Təsdiqlə</button>
+                            <button onclick="rejectReceipt('${r.id}')" class="btn btn-outline" style="flex:1; padding: 8px; color: var(--danger-color);">İmtina</button>
                         </div>
                     </div>
                 </div>
             `).join('');
 
-            window.openModal = (url) => {
+            window.openFullImage = (url) => {
                 document.getElementById('modal-img').src = url;
                 document.getElementById('img-modal').style.display = 'flex';
             };
 
-            window.approve = (id, userId, amountAzn) => {
-                const amount = prompt('İstifadəçiyə köçürüləcək Tocoin miqdarı:', amountAzn || '0');
-                if (amount !== null && amount !== '') {
+            window.approveReceipt = (id, userId, amountAzn) => {
+                const amount = prompt('İstifadəçiyə köçürüləcək Tocoin miqdarı:', amountAzn);
+                if (amount) {
                     AdminReceipts.approve(id, userId, amount);
+                    setTimeout(loadReceipts, 1000);
                 }
             };
 
-            window.reject = (id) => {
-                const reason = prompt('İmtina səbəbi:', 'Qəbz oxunmur');
-                if (reason !== null) {
+            window.rejectReceipt = (id) => {
+                const reason = prompt('İmtina səbəbi:', 'Qəbz aydın oxunmur');
+                if (reason) {
                     AdminReceipts.reject(id, reason);
+                    setTimeout(loadReceipts, 1000);
                 }
             };
         }
+
+        init();
     </script>
 </body>
 

@@ -5,403 +5,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
-    <title>Toys Market - Uşaq Oyuncaqları Bazarı</title>
+    <title>Toys Market - Super Möhtəşəm Oyuncaqlar</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 6rem 0 4rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,122.7C1248,107,1344,85,1392,74.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.3;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            color: white;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            animation: fadeInUp 0.8s ease-out;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 0.8s ease-out 0.4s both;
-        }
-
-        .hero-btn {
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-
-        .hero-btn-primary {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero-btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            backdrop-filter: blur(10px);
-        }
-
-        .hero-btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-3px);
-        }
-
-        /* Features Section */
-        .features {
-            padding: 4rem 0;
-            background: linear-gradient(to bottom, #f8f9fa, #ffffff);
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            animation: fadeInUp 0.6s ease-out both;
-        }
-
-        .feature-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .feature-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .feature-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .feature-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            animation: bounce 2s infinite;
-        }
-
-        .feature-card:hover .feature-icon {
-            animation: pulse 0.5s ease;
-        }
-
-        /* Products Section */
-        .products-section {
-            padding: 4rem 0;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-header p {
-            font-size: 1.1rem;
-            color: #718096;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            animation: fadeInUp 0.6s ease-out both;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover .product-image {
-            transform: scale(1.1);
-        }
-
-        .product-info {
-            padding: 1.5rem;
-        }
-
-        .product-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .add-to-cart-btn {
-            width: 100%;
-            padding: 0.8rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .add-to-cart-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
-            text-align: center;
-            padding: 4rem 0;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-        }
-    </style>
 </head>
 
 <body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <div class="loader-toy">🧸</div>
+            <p>Möhtəşəm aləm yüklənir...</p>
+        </div>
+    </div>
+
     <div id="app">
         <!-- Navbar will be injected here -->
     </div>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>🎈 Uşaq Oyuncaqları Bazarı</h1>
-            <p>Uşaqlarınız üçün ən keyfiyyətli və təhlükəsiz oyuncaqlar</p>
-            <div class="hero-buttons">
-                <a href="#products" class="hero-btn hero-btn-primary">Oyuncaqlara Bax</a>
-                <a href="/about.html" class="hero-btn hero-btn-secondary">Haqqımızda</a>
-            </div>
-        </div>
-    </section>
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="hero-background"></div>
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <div class="section-header">
-                <h2>Niyə Bizi Seçməlisiniz?</h2>
-                <p>Uşaqlarınızın xoşbəxtliyi bizim prioritetimizdir</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🎁</div>
-                    <h3>Keyfiyyətli Məhsullar</h3>
-                    <p>Yalnız sertifikatlaşdırılmış və təhlükəsiz oyuncaqlar</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🚚</div>
-                    <h3>Sürətli Çatdırılma</h3>
-                    <p>Sifarişiniz ən qısa zamanda qapınıza çatdırılır</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3>Əlverişli Qiymətlər</h3>
-                    <p>Ən yaxşı qiymətlər və xüsusi endirimlər</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎉</div>
-                    <h3>Geniş Çeşid</h3>
-                    <p>Hər yaş qrupu üçün minlərlə oyuncaq</p>
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div class="hero-content">
+                    <span class="hero-badge">✨ Yeni Kolleksiya 2024</span>
+                    <h1>Xəyallarınızdakı <br><span style="color: var(--primary-color)">Oyuncaq Dünyası</span></h1>
+                    <p>Uşaqlarınız üçün ən keyfiyyətli, təhlükəsiz və əyləncəli oyuncaqları kəşf edin. Hər bir oyuncaq
+                        bir hekayədir!</p>
+                    <div class="hero-btns">
+                        <a href="#products" class="btn btn-primary">İndi Kəşf Et</a>
+                        <a href="/about.html" class="btn btn-outline">Haqqımızda</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Products Section -->
-    <section class="products-section" id="products">
-        <div class="container">
-            <div class="section-header">
-                <h2>Populyar Oyuncaqlar</h2>
-                <p>Ən çox bəyənilən məhsullarımız</p>
-            </div>
-            <div id="products-container" class="products-grid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p style="margin-top: 1rem; color: #718096;">Oyuncaqlar yüklənir...</p>
+        <!-- Features Section -->
+        <section class="features">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div class="section-title reveal">
+                    <h2>Niyə Bizi Seçməlisiniz?</h2>
+                    <p>Uşaqlarınızın təhlükəsizliyi və xoşbəxtliyi bizim üçün hər şeydən üstündür.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card reveal" style="transition-delay: 0.1s;">
+                        <div class="feature-icon-wrapper">🛡️</div>
+                        <h3>Təhlükəsizlik</h3>
+                        <p>Bütün məhsullarımız beynəlxalq təhlükəsizlik standartlarına cavab verir.</p>
+                    </div>
+                    <div class="feature-card reveal" style="transition-delay: 0.2s;">
+                        <div class="feature-icon-wrapper">🚀</div>
+                        <h3>Sürətli Çatdırılma</h3>
+                        <p>Sifarişləriniz ən qısa zamanda xüsusi qablaşdırma ilə qapınıza çatdırılır.</p>
+                    </div>
+                    <div class="feature-card reveal" style="transition-delay: 0.3s;">
+                        <div class="feature-icon-wrapper">💎</div>
+                        <h3>Premium Keyfiyyət</h3>
+                        <p>Yalnız ən yaxşı brendlərin orijinal və dözümlü oyuncaqlarını təqdim edirik.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <!-- Products Section -->
+        <section class="products-section" id="products">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div class="section-title reveal">
+                    <h2>Populyar Oyuncaqlar</h2>
+                    <p>Bu həftənin ən çox sevilən və seçilən məhsulları</p>
+                </div>
+
+                <div id="products-container" class="products-grid">
+                    <!-- Products will be injected by app.js -->
+                    <div class="loading" style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                        <div class="loader-toy" style="font-size: 3rem;">🚗</div>
+                        <p>Oyuncaqlar gətirilir...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script type="module" src="js/supabase.js"></script>
     <script type="module" src="js/app.js"></script>

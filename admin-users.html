@@ -8,84 +8,103 @@
     <title>İstifadəçilər - Admin Panel</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
+    <div id="preloader">
+        <div class="loader-toy">👥</div>
+    </div>
+
     <div class="admin-layout">
-        <div class="sidebar">
-            <h2>Admin Panel</h2>
-            <a href="admin.html">Dashboard</a>
-            <a href="admin-toys.html">Oyuncaqlar</a>
-            <a href="admin-receipts.html">Qəbzlər</a>
-            <a href="admin-users.html" class="active">İstifadəçilər</a>
-            <a href="admin-orders.html">Sifarişlər</a>
-            <a href="/">Sayta Qayıt</a>
-        </div>
-        <div class="main-content">
-            <div class="card">
-                <h2>İstifadəçilər</h2>
-                <div id="users-list">Yüklənir...</div>
+        <aside class="admin-sidebar">
+            <h2>Toys Market</h2>
+            <nav class="admin-nav">
+                <a href="admin.html"><span>📊</span> <span>Dashboard</span></a>
+                <a href="admin-toys.html"><span>🧸</span> <span>Oyuncaqlar</span></a>
+                <a href="admin-receipts.html"><span>🧾</span> <span>Qəbzlər</span></a>
+                <a href="admin-users.html" class="active"><span>👥</span> <span>İstifadəçilər</span></a>
+                <a href="admin-orders.html"><span>📦</span> <span>Sifarişlər</span></a>
+                <hr style="opacity: 0.1; margin: 10px 0;">
+                <a href="/"><span>🏠</span> <span>Sayta Qayıt</span></a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header reveal">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800;">İstifadəçi Bazası 👥</h1>
+                    <p style="color: var(--text-muted);">Platformada qeydiyyatdan keçən bütün istifadəçilər.</p>
+                </div>
+            </header>
+
+            <div class="admin-table-container reveal" style="transition-delay: 200ms;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Ad Soyad</th>
+                            <th>Elektron Poçt</th>
+                            <th>Tocoin Balansı</th>
+                            <th>İstifadəçi Rolu</th>
+                            <th>Əməliyyat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list">
+                        <!-- Data goes here -->
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </main>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { checkAdmin, AdminUsers } from './js/admin.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        (async () => {
+        async function init() {
+            initPreloader();
             await checkAdmin();
-            loadUsers();
-        })();
+            await loadUsers();
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
 
         async function loadUsers() {
             const { data: users } = await supabase.from('users').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('users-list');
 
-            if (!users.length) {
-                container.innerHTML = '<p>İstifadəçi yoxdur.</p>';
+            if (!users || users.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; opacity: 0.5;">İstifadəçi tapılmadı.</td></tr>';
                 return;
             }
 
-            container.innerHTML = `
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Ad</th>
-                                <th>Balans (Tocoin)</th>
-                                <th>Rol</th>
-                                <th>Əməliyyat</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${users.map(user => `
-                                <tr>
-                                    <td>${user.email}</td>
-                                    <td>${user.full_name || '-'}</td>
-                                    <td>${user.tocoin_balance}</td>
-                                    <td>${user.role}</td>
-                                    <td>
-                                        <button onclick="editBalance('${user.id}', ${user.tocoin_balance})" class="btn btn-sm btn-outline">Balansı Dəyiş</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            container.innerHTML = users.map(user => `
+                <tr>
+                    <td style="font-weight: 700;">${user.full_name || 'Qeyd olunmayıb'}</td>
+                    <td style="color: var(--text-muted);">${user.email}</td>
+                    <td><span style="color:var(--secondary-color); font-weight:700;">💰 ${user.tocoin_balance} TCN</span></td>
+                    <td><span class="badge ${user.role === 'admin' ? 'paid' : 'pending'}" style="text-transform: capitalize;">${user.role}</span></td>
+                    <td>
+                        <button onclick="changeBalance('${user.id}', ${user.tocoin_balance})" class="btn btn-outline" style="padding: 5px 15px; font-size: 0.8rem;">Balans +/-</button>
+                    </td>
+                </tr>
+            `).join('');
 
-            window.editBalance = (id, currentBalance) => {
-                const newBalance = prompt('Yeni balans:', currentBalance);
+            window.changeBalance = (id, currentBalance) => {
+                const newBalance = prompt('Yeni balans miqdarını daxil edin:', currentBalance);
                 if (newBalance !== null) {
                     AdminUsers.updateBalance(id, newBalance);
+                    setTimeout(loadUsers, 1000);
                 }
             };
         }
+
+        init();
     </script>
 </body>
 

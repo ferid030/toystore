@@ -8,158 +8,198 @@
     <title>Bildirişlər - Toys Market</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .notifications-container {
+        .notifications-wrapper {
             max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .notification-item {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--primary-color);
-            transition: all 0.3s;
-        }
-
-        .notification-item.unread {
-            background: #f0f8ff;
-            border-left-color: var(--secondary-color);
-        }
-
-        .notification-item.success {
-            border-left-color: var(--success);
-        }
-
-        .notification-item.error {
-            border-left-color: var(--danger);
-        }
-
-        .notification-item.warning {
-            border-left-color: #FFA500;
-        }
-
-        .notification-header {
+        .notif-item {
             display: flex;
-            justify-content: space-between;
+            gap: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .notif-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .notif-item.unread {
+            background: rgba(255, 71, 87, 0.03);
+            border: 1px solid rgba(255, 71, 87, 0.1);
+        }
+
+        .notif-item.success::after {
+            background: var(--success-color);
+        }
+
+        .notif-item.info::after {
+            background: var(--info-color);
+        }
+
+        .notif-item.warning::after {
+            background: var(--warning-color);
+        }
+
+        .notif-icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-white);
+            display: flex;
             align-items: center;
-            margin-bottom: 0.5rem;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
         }
 
-        .notification-title {
-            font-weight: 600;
-            color: var(--dark-color);
+        .notif-content {
+            flex: 1;
         }
 
-        .notification-time {
-            font-size: 0.85rem;
-            color: #999;
+        .notif-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
         }
 
-        .notification-message {
-            color: #666;
+        .notif-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
             line-height: 1.5;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
+        .notif-time {
+            font-size: 0.8rem;
             color: #999;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 100px 0;
+            opacity: 0.5;
         }
     </style>
 </head>
 
 <body>
-    <div id="navbar"></div>
-
-    <div class="notifications-container fade-in">
-        <h1>📬 Bildirişlər</h1>
-        <div id="notifications-list">
-            <p>Yüklənir...</p>
-        </div>
+    <div id="preloader">
+        <div class="loader-toy">🔔</div>
     </div>
 
-    <div id="footer"></div>
+    <div id="app"></div>
+
+    <header class="page-header">
+        <div class="container">
+            <h1>Bildirişləriniz 📬</h1>
+            <p>Sifariş statusları və xüsusi təkliflər haqqında məlumatlar.</p>
+        </div>
+    </header>
+
+    <main class="notifications-wrapper">
+        <div id="notifications-list">
+            <!-- Notifications injected here -->
+        </div>
+    </main>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { renderNavbar, renderFooter, Loader, Toast } from './js/components.js';
         import { getCurrentUser } from './js/auth.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        (async () => {
-            Loader.show();
+        async function init() {
+            initPreloader();
             const user = await getCurrentUser();
-
             if (!user) {
                 window.location.href = '/login.html';
                 return;
             }
+            document.getElementById('app').appendChild(renderNavbar(user));
+            document.body.appendChild(renderFooter());
 
-            document.getElementById('navbar').appendChild(renderNavbar(user));
-            document.getElementById('footer').appendChild(renderFooter());
+            await loadNotifications(user.id);
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
 
-            await loadNotifications();
-            Loader.hide();
-        })();
-
-        async function loadNotifications() {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            // Fetch notifications
+        async function loadNotifications(userId) {
             const { data: notifications, error } = await supabase
                 .from('notifications')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('created_at', { ascending: false });
 
             const container = document.getElementById('notifications-list');
 
-            if (error) {
-                container.innerHTML = '<p class="empty-state">Xəta baş verdi</p>';
+            if (error || !notifications || notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-notifications reveal">
+                        <span style="font-size: 5rem;">📭</span>
+                        <h2 style="margin-top: 20px;">Hələ ki bildiriş yoxdur.</h2>
+                    </div>
+                `;
                 return;
             }
 
-            if (!notifications || notifications.length === 0) {
-                container.innerHTML = '<p class="empty-state">Hələ bildiriş yoxdur</p>';
-                return;
-            }
-
-            container.innerHTML = notifications.map(notif => {
+            container.innerHTML = notifications.map((notif, idx) => {
                 const timeAgo = getTimeAgo(new Date(notif.created_at));
+                let icon = '🔔';
+                if (notif.type === 'success') icon = '✅';
+                if (notif.type === 'info') icon = 'ℹ️';
+                if (notif.type === 'warning') icon = '⚠️';
+                if (notif.type === 'error') icon = '❌';
+
                 return `
-                    <div class="notification-item ${!notif.is_read ? 'unread' : ''} ${notif.type}">
-                        <div class="notification-header">
-                            <div class="notification-title">${notif.title}</div>
-                            <div class="notification-time">${timeAgo}</div>
+                    <div class="glass-card notif-item reveal ${!notif.is_read ? 'unread' : ''} ${notif.type}" style="transition-delay: ${idx * 100}ms;">
+                        <div class="notif-icon-circle">${icon}</div>
+                        <div class="notif-content">
+                            <h4>${notif.title}</h4>
+                            <p>${notif.message}</p>
+                            <span class="notif-time">${timeAgo}</span>
                         </div>
-                        <div class="notification-message">${notif.message}</div>
                     </div>
                 `;
             }).join('');
 
-            // Mark all as read
-            await supabase
-                .from('notifications')
-                .update({ is_read: true })
-                .eq('user_id', user.id)
-                .eq('is_read', false);
+            // Mark as read after delay
+            setTimeout(async () => {
+                await supabase
+                    .from('notifications')
+                    .update({ is_read: true })
+                    .eq('user_id', userId)
+                    .eq('is_read', false);
+            }, 3000);
         }
 
         function getTimeAgo(date) {
             const seconds = Math.floor((new Date() - date) / 1000);
-
             if (seconds < 60) return 'İndicə';
             if (seconds < 3600) return Math.floor(seconds / 60) + ' dəqiqə əvvəl';
             if (seconds < 86400) return Math.floor(seconds / 3600) + ' saat əvvəl';
             if (seconds < 604800) return Math.floor(seconds / 86400) + ' gün əvvəl';
-
             return date.toLocaleDateString('az-AZ');
         }
+
+        init();
     </script>
 </body>
 

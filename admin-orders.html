@@ -8,200 +8,192 @@
     <title>Sifarişlər - Admin Panel</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .modal-body-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .location-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: rgba(46, 213, 115, 0.1);
+            color: var(--success-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .location-badge:hover {
+            background: var(--success-color);
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="preloader">
+        <div class="loader-toy">📦</div>
+    </div>
+
     <div class="admin-layout">
-        <div class="sidebar">
-            <h2>Admin Panel</h2>
-            <a href="admin.html">Dashboard</a>
-            <a href="admin-toys.html">Oyuncaqlar</a>
-            <a href="admin-receipts.html">Qəbzlər</a>
-            <a href="admin-users.html">İstifadəçilər</a>
-            <a href="admin-orders.html" class="active">Sifarişlər</a>
-            <a href="/">Sayta Qayıt</a>
-        </div>
-        <div class="main-content">
-            <div class="card">
-                <h2>Sifarişlər</h2>
-                <div id="orders-list">Yüklənir...</div>
+        <aside class="admin-sidebar">
+            <h2>Toys Market</h2>
+            <nav class="admin-nav">
+                <a href="admin.html"><span>📊</span> <span>Dashboard</span></a>
+                <a href="admin-toys.html"><span>🧸</span> <span>Oyuncaqlar</span></a>
+                <a href="admin-receipts.html"><span>🧾</span> <span>Qəbzlər</span></a>
+                <a href="admin-users.html"><span>👥</span> <span>İstifadəçilər</span></a>
+                <a href="admin-orders.html" class="active"><span>📦</span> <span>Sifarişlər</span></a>
+                <hr style="opacity: 0.1; margin: 10px 0;">
+                <a href="/"><span>🏠</span> <span>Sayta Qayıt</span></a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header reveal">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800;">Sifarişlərin İdarə Edilməsi 📦</h1>
+                    <p style="color: var(--text-muted);">Müştəri sifarişləri və çatdırılma ünvanları.</p>
+                </div>
+            </header>
+
+            <div class="admin-table-container reveal" style="transition-delay: 200ms;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Sifariş ID</th>
+                            <th>Müştəri</th>
+                            <th>Məbləğ</th>
+                            <th>Ödəniş</th>
+                            <th>Status</th>
+                            <th>Tarix</th>
+                            <th>Konum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list">
+                        <!-- Data goes here -->
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </main>
     </div>
 
     <!-- Location Modal -->
     <div id="location-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content glass-card" style="max-width: 600px;">
             <div class="modal-header">
-                <h3>📍 Çatdırılma Ünvanı</h3>
-                <button class="close-btn" onclick="closeLocationModal()">Bağla</button>
+                <h3>📍 Çatdırılma Konumu</h3>
+                <button class="close-btn" onclick="closeLocationModal()">✕</button>
             </div>
-            <div id="location-address"
-                style="background:#f0f8ff; padding:1rem; border-radius:8px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <strong>Ünvan:</strong> <span id="address-text">Yüklənir...</span>
-                </div>
-                <div style="display:flex; gap:0.5rem;">
-                    <button onclick="copyAddress()" class="btn btn-sm btn-outline">Kopyala</button>
-                    <button onclick="shareLocation()" class="btn btn-sm btn-primary">Paylaş</button>
+            <div style="background: rgba(0,0,0,0.03); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-size: 0.8rem; color: #777; margin-bottom: 5px;">Ünvan (Təxmini)</div>
+                <div id="address-text" style="font-weight: 700; line-height: 1.5;">Yüklənir...</div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="copyCoords()" class="btn btn-outline"
+                        style="padding: 8px 15px; font-size: 0.8rem;">Kopyala 📋</button>
+                    <button id="share-loc-btn" class="btn btn-primary"
+                        style="padding: 8px 15px; font-size: 0.8rem;">Paylaş 🔗</button>
                 </div>
             </div>
-            <div id="location-map"></div>
+            <div id="location-map" class="modal-body-map"></div>
         </div>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { checkAdmin } from './js/admin.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        let locationMap = null;
-        let locationMarker = null;
-        let currentCoords = null; // Store {lat, lng}
+        let map = null, marker = null, currentCoords = null;
 
-        (async () => {
+        async function init() {
+            initPreloader();
             await checkAdmin();
-            loadOrders();
-        })();
+            await loadOrders();
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
 
         async function loadOrders() {
             const { data: orders } = await supabase
                 .from('orders')
-                .select('*, users(email)')
+                .select('*, users(email, full_name)')
                 .order('created_at', { ascending: false });
 
             const container = document.getElementById('orders-list');
 
-            if (!orders.length) {
-                container.innerHTML = '<p>Sifariş yoxdur.</p>';
+            if (!orders || orders.length === 0) {
+                container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; opacity: 0.5;">Sifariş tapılmadı.</td></tr>';
                 return;
             }
 
-            container.innerHTML = `
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>İstifadəçi</th>
-                                <th>Məbləğ</th>
-                                <th>Ödəniş</th>
-                                <th>Status</th>
-                                <th>Tarix</th>
-                                <th>Konum</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${orders.map(order => `
-                                <tr>
-                                    <td>${order.id.slice(0, 8)}</td>
-                                    <td>${order.users?.email || 'Silinib'}</td>
-                                    <td>${order.total_amount_azn > 0 ? order.total_amount_azn + ' AZN' : 'Tocoin'}</td>
-                                    <td>${order.payment_method}</td>
-                                    <td><span class="badge ${order.status}">${order.status}</span></td>
-                                    <td>${new Date(order.created_at).toLocaleString('az-AZ')}</td>
-                                    <td>
-                                        ${order.delivery_lat && order.delivery_lng
-                    ? `<button class="location-btn" onclick="showLocation(${order.delivery_lat}, ${order.delivery_lng})">🗺️ Göstər</button>`
-                    : '<span style="color:#999;">Yoxdur</span>'
+            container.innerHTML = orders.map(order => `
+                <tr>
+                    <td>#${order.id.slice(0, 8)}</td>
+                    <td>
+                        <div style="font-weight: 700;">${order.users?.full_name || 'Silinib'}</div>
+                        <div style="font-size: 0.75rem; color: #777;">${order.users?.email || ''}</div>
+                    </td>
+                    <td>${order.total_amount_azn > 0 ? order.total_amount_azn + ' AZN' : '<span style="color:#ffa502">Tocoin</span>'}</td>
+                    <td><span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">${order.payment_method}</span></td>
+                    <td><span class="badge ${order.status}">${order.status}</span></td>
+                    <td style="font-size: 0.8rem;">${new Date(order.created_at).toLocaleString('az-AZ')}</td>
+                    <td>
+                        ${order.delivery_lat ? `<div class="location-badge" onclick="showLoc(${order.delivery_lat}, ${order.delivery_lng})">📍 Xəritə</div>` : '--'}
+                    </td>
+                </tr>
+            `).join('');
+
+            window.showLoc = (lat, lng) => {
+                currentCoords = { lat, lng };
+                document.getElementById('location-modal').classList.add('active');
+
+                if (!map) {
+                    map = L.map('location-map').setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    marker = L.marker([lat, lng]).addTo(map);
+                } else {
+                    map.setView([lat, lng], 15);
+                    marker.setLatLng([lat, lng]);
                 }
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
+
+                // Reverse geocoding
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('address-text').textContent = data.display_name || `Koordinatlar: ${lat}, ${lng}`;
+                    });
+
+                setTimeout(() => map.invalidateSize(), 300);
+            };
+
+            window.closeLocationModal = () => document.getElementById('location-modal').classList.remove('active');
+            window.copyCoords = () => {
+                navigator.clipboard.writeText(`${currentCoords.lat}, ${currentCoords.lng}`);
+                alert('Koordinatlar kopyalandı!');
+            };
+
+            document.getElementById('share-loc-btn').onclick = () => {
+                const url = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
+                window.open(url, '_blank');
+            };
         }
 
-        window.showLocation = function (lat, lng) {
-            currentCoords = { lat, lng };
-            const modal = document.getElementById('location-modal');
-            modal.classList.add('active');
-            document.getElementById('address-text').textContent = 'Yüklənir...';
-
-            // Initialize map
-            if (!locationMap) {
-                locationMap = L.map('location-map').setView([lat, lng], 15);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(locationMap);
-
-                locationMarker = L.marker([lat, lng]).addTo(locationMap);
-            } else {
-                locationMap.setView([lat, lng], 15);
-                locationMarker.setLatLng([lat, lng]);
-            }
-
-            // Get address
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=az`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.display_name) {
-                        const coords = `(${lat.toFixed(6)}, ${lng.toFixed(6)})`;
-                        document.getElementById('address-text').innerHTML = `${data.display_name} <br><small style="color:#666; font-weight:normal;">${coords}</small>`;
-                    } else {
-                        document.getElementById('address-text').textContent = `Koordinatlar: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    }
-                })
-                .catch(() => {
-                    document.getElementById('address-text').textContent = `Koordinatlar: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                });
-
-            // Fix map rendering
-            setTimeout(() => {
-                locationMap.invalidateSize();
-            }, 100);
-        };
-
-        window.copyAddress = function () {
-            if (!currentCoords) return;
-            const text = `${currentCoords.lat}, ${currentCoords.lng}`;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Koordinatlar kopyalandı!');
-            }).catch(err => {
-                console.error('Kopyalama xətası:', err);
-                alert('Kopyalama uğursuz oldu.');
-            });
-        };
-
-        window.shareLocation = async function () {
-            if (!currentCoords) return;
-            const url = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
-
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Çatdırılma Ünvanı',
-                        text: `Çatdırılma ünvanı: ${currentCoords.lat}, ${currentCoords.lng}`,
-                        url: url
-                    });
-                } catch (err) {
-                    console.error('Paylaşım xətası:', err);
-                    window.open(url, '_blank');
-                }
-            } else {
-                window.open(url, '_blank');
-            }
-        };
-
-        window.closeLocationModal = function () {
-            document.getElementById('location-modal').classList.remove('active');
-        };
-
-        // Close modal on outside click
-        document.getElementById('location-modal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeLocationModal();
-            }
-        });
+        init();
     </script>
 </body>
 

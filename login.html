@@ -8,79 +8,87 @@
     <title>Giriş - Toys Market</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        .auth-container {
-            max-width: 400px;
-            margin: 4rem auto;
-            padding: 2rem;
-            background: var(--white);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: var(--radius-sm);
-            font-family: inherit;
-        }
-
-        .auth-footer {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-    </style>
 </head>
 
 <body>
-    <div id="navbar-placeholder"></div>
-
-    <div class="container fade-in">
-        <div class="auth-container">
-            <h2 class="text-center mb-2">Hesaba Giriş</h2>
-            <form id="login-form">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Şifrə</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%">Daxil ol</button>
-            </form>
-            <div class="auth-footer">
-                Hesabınız yoxdur? <a href="/register.html" style="color: var(--primary-color)">Qeydiyyatdan keçin</a>
-            </div>
-        </div>
+    <div id="preloader">
+        <div class="loader-toy">🧸</div>
     </div>
 
-    <script type="module">
-        import { renderNavbar } from './js/components.js';
-        import { login } from './js/auth.js';
+    <div id="app"></div>
 
-        document.getElementById('navbar-placeholder').appendChild(renderNavbar(null));
+    <main class="auth-wrapper">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+
+        <div class="auth-card glass-card reveal">
+            <h2>Xoş Gəldiniz! 👋</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Davam etmək üçün hesabınıza
+                giriş edin.</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Email Ünvanı</label>
+                    <input type="email" id="email" class="form-control" placeholder="nümunə@mail.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Şifrə</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    Daxil Ol 🚀
+                </button>
+            </form>
+
+            <div style="margin-top: 25px; text-align: center; font-size: 0.95rem;">
+                Hesabınız yoxdur? <a href="/register.html"
+                    style="color: var(--primary-color); font-weight: 700; text-decoration: none;">Qeydiyyatdan Keçin</a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js';
+        import { renderNavbar, renderFooter, Toast } from './js/components.js';
+        import { login, getCurrentUser } from './js/auth.js';
+        import { reveal, initPreloader } from './js/animations.js';
+
+        async function init() {
+            initPreloader();
+            const user = await getCurrentUser();
+            const app = document.getElementById('app');
+            app.appendChild(renderNavbar(user));
+
+            document.body.appendChild(renderFooter());
+
+            reveal();
+            window.addEventListener('scroll', reveal);
+        }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            await login(email, password);
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Yüklənir... ⏳';
+            btn.disabled = true;
+
+            try {
+                await login(email, password);
+            } catch (err) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
+
+        init();
     </script>
 </body>
 

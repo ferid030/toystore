@@ -2,13 +2,20 @@ import { supabase } from './supabase.js';
 import { renderNavbar, renderFooter, Loader, Toast } from './components.js';
 import { getCurrentUser } from './auth.js';
 import { Cart } from './cart.js';
+import { reveal, initPreloader, initHeroParallax } from './animations.js';
 
 async function init() {
+    initPreloader();
+
     const user = await getCurrentUser();
     document.getElementById('app').innerHTML = '';
     document.getElementById('app').appendChild(renderNavbar(user));
 
     await loadToys();
+
+    initHeroParallax();
+    window.addEventListener("scroll", reveal);
+    reveal(); // Initial check
 
     const footer = renderFooter();
     document.body.appendChild(footer);
@@ -36,30 +43,40 @@ async function loadToys() {
     }
 
     container.innerHTML = toys.map((toy, index) => `
-        <div class="product-card" style="animation-delay: ${index * 0.1}s;">
-            ${toy.discount ? `<div class="product-badge">-${toy.discount}%</div>` : ''}
+        <div class="product-card reveal" style="transition-delay: ${(index % 4) * 0.1}s;">
+            ${toy.discount ? `<div class="product-badge">-${toy.discount}% Endirim</div>` : ''}
+            ${toy.tocoin_price ? `<div class="tocoin-tag">💰 ${toy.tocoin_price} TC</div>` : ''}
+            
             <a href="/product.html?id=${toy.id}" style="text-decoration:none; color:inherit;">
-                <img src="${toy.image_url || 'https://placehold.co/400x300?text=Oyuncaq'}" 
-                     alt="${toy.name}" 
-                     class="product-image">
+                <div class="product-image-container">
+                    <img src="${toy.image_url || 'https://placehold.co/400x400?text=Oyuncaq'}" 
+                         alt="${toy.name}" 
+                         class="product-image">
+                </div>
+                
                 <div class="product-info">
-                    <div class="product-name">${toy.name}</div>
-                    <div class="product-price">${toy.price_azn} AZN</div>
-                    ${toy.tocoin_price ? `<div style="color: #f5576c; font-weight: 600; font-size: 0.95rem; margin-bottom: 1rem;">💰 ${toy.tocoin_price} Tocoin</div>` : ''}
+                    <span class="product-category">Oyuncaq</span>
+                    <h3 class="product-name">${toy.name}</h3>
+                    
+                    <div class="product-price-row">
+                        <div class="product-price">${toy.price_azn} AZN</div>
+                        <div class="btn-add-cart add-to-cart-btn" data-id="${toy.id}" title="Səbətə Əlavə Et">
+                            <span style="pointer-events: none;">🛒</span>
+                        </div>
+                    </div>
                 </div>
             </a>
-            <div style="padding: 0 1.5rem 1.5rem;">
-                <button class="add-to-cart-btn" data-id="${toy.id}">
-                    🛒 Səbətə Əlavə Et
-                </button>
-            </div>
         </div>
     `).join('');
+
+    // Trigger reveal after products are added
+    setTimeout(reveal, 100);
 
     // Add event listeners for cart buttons
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const currentUser = await getCurrentUser();
 
             if (!currentUser) {
@@ -68,24 +85,33 @@ async function loadToys() {
                 return;
             }
 
-            const id = e.target.dataset.id;
+            const id = btn.dataset.id;
             const toy = toys.find(t => t.id === id);
             Cart.add(toy);
 
             // Button animation
-            e.target.textContent = '✓ Əlavə Edildi';
-            e.target.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '✓';
+            btn.style.background = 'var(--grad-green)';
+            btn.style.color = 'white';
+
+            Toast.show(`${toy.name} səbətə əlavə edildi`, 'success');
+
             setTimeout(() => {
-                e.target.textContent = '🛒 Səbətə Əlavə Et';
-                e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                btn.innerHTML = originalContent;
+                btn.style.background = '';
+                btn.style.color = '';
             }, 2000);
         });
     });
 
     // Smooth scroll for hero button
-    document.querySelector('.hero-btn-primary')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+    document.querySelector('.btn-primary')?.addEventListener('click', (e) => {
+        const targetId = e.target.getAttribute('href');
+        if (targetId && targetId.startsWith('#')) {
+            e.preventDefault();
+            document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+        }
     });
 }
 

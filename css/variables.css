@@ -1,39 +1,51 @@
 :root {
     /* Colors */
-    --primary-color: #FF6B6B;
-    --secondary-color: #4ECDC4;
-    --accent-color: #FFE66D;
-    --dark-color: #2C3E50;
-    --light-color: #F7F9FC;
-    --text-color: #2D3436;
-    --white: #FFFFFF;
-    --success: #2ECC71;
-    --danger: #E74C3C;
-    
+    --primary-color: #ff4757;
+    --primary-light: #ff6b81;
+    --secondary-color: #2f3542;
+    --accent-color: #ffa502;
+    --success-color: #2ed573;
+    --info-color: #1e90ff;
+    --warning-color: #eccc68;
+    --danger-color: #ff4757;
+
+    /* Backgrounds */
+    --bg-main: #f1f2f6;
+    --bg-white: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.7);
+
     /* Typography */
     --font-main: 'Outfit', sans-serif;
-    
-    /* Spacing */
-    --spacing-xs: 0.5rem;
-    --spacing-sm: 1rem;
-    --spacing-md: 2rem;
-    --spacing-lg: 4rem;
-    
-    /* Border Radius */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    
+    --text-main: #2f3542;
+    --text-muted: #747d8c;
+
+    /* Gradients */
+    --grad-primary: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+    --grad-secondary: linear-gradient(135deg, #2f3542 0%, #57606f 100%);
+    --grad-accent: linear-gradient(135deg, #ffa502 0%, #ff7f50 100%);
+    --grad-blue: linear-gradient(135deg, #70a1ff 0%, #1e90ff 100%);
+    --grad-green: linear-gradient(135deg, #7bed9f 0%, #2ed573 100%);
+
     /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
-    --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
-    --shadow-lg: 0 16px 48px rgba(0,0,0,0.15);
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+    --shadow-primary: 0 10px 20px rgba(255, 71, 87, 0.3);
+
+    /* Radius */
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 32px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 body {
     font-family: var(--font-main);
-    background-color: var(--light-color);
-    color: var(--text-color);
+    background-color: var(--bg-main);
+    color: var(--text-main);
     margin: 0;
     padding: 0;
     line-height: 1.6;

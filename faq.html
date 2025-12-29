@@ -8,60 +8,170 @@
     <title>FAQ - Toys Market</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .faq-item {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 1rem;
+        .faq-wrapper {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 0 20px;
         }
 
-        .faq-item h3 {
-            margin: 0 0 0.5rem 0;
+        .faq-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .faq-card {
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .faq-question {
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+
+        .faq-card:hover .faq-question {
+            background: rgba(255, 71, 87, 0.05);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 30px;
+            opacity: 0;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        .faq-card.active .faq-answer {
+            max-height: 300px;
+            padding: 0 30px 30px 30px;
+            opacity: 1;
+        }
+
+        .faq-card.active .faq-toggle {
+            transform: rotate(180deg);
+        }
+
+        .faq-toggle {
+            transition: var(--transition);
+            font-size: 1.2rem;
             color: var(--primary-color);
-        }
-
-        .faq-item p {
-            margin: 0;
         }
     </style>
 </head>
 
 <body>
-    <div id="app"></div>
-
-    <div class="container mt-2 fade-in">
-        <h1 class="text-center mb-2">Tez-tez Verilən Suallar</h1>
-
-        <div class="faq-item">
-            <h3>Sifarişim nə vaxt çatdırılacaq?</h3>
-            <p>Sifarişlər adətən 1-3 iş günü ərzində çatdırılır.</p>
-        </div>
-
-        <div class="faq-item">
-            <h3>Ödənişi necə edə bilərəm?</h3>
-            <p>Ödənişi bank kartı ilə (qəbz yükləməklə) və ya Tocoin balansınızla edə bilərsiniz.</p>
-        </div>
-
-        <div class="faq-item">
-            <h3>Tocoin nədir?</h3>
-            <p>Tocoin bizim daxili valyutamızdır. Siz onu balansınızı artıraraq əldə edə bilərsiniz və alış-veriş zamanı
-                istifadə edə bilərsiniz.</p>
-        </div>
+    <div id="preloader">
+        <div class="loader-toy">❓</div>
     </div>
 
-    <script type="module">
-        import { renderNavbar, renderFooter } from './js/components.js';
-        import { getCurrentUser } from './js/auth.js';
+    <div id="app"></div>
 
-        (async () => {
+    <header class="page-header">
+        <div class="container">
+            <h1>Sizə Necə Kömək Edə Bilərik? ❓</h1>
+            <p>Ən çox verilən suallar və onların cavabları.</p>
+        </div>
+    </header>
+
+    <main class="faq-wrapper">
+        <div class="faq-accordion">
+            <div class="glass-card faq-card reveal" style="transition-delay: 100ms;">
+                <div class="faq-question">
+                    Sifarişim nə vaxt çatdırılacaq?
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Bütün sifarişlər Bakı daxilində 24 saat, regionlara isə 2-3 iş günü ərzində çatdırılır. Sifarişiniz
+                    kuryerə təhvil verildikdə sizə bildiriş göndəriləcək.
+                </div>
+            </div>
+
+            <div class="glass-card faq-card reveal" style="transition-delay: 200ms;">
+                <div class="faq-question">
+                    Ödənişi hansı üsullarla edə bilərəm?
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Siz ödənişi həm bank kartı vasitəsilə (köçürmə edib qəbzi yükləməklə), həm də daxili "Tocoin"
+                    balansınızla edə bilərsiniz. Tezliklə onlayn kartla ödəniş də aktivləşəcək.
+                </div>
+            </div>
+
+            <div class="glass-card faq-card reveal" style="transition-delay: 300ms;">
+                <div class="faq-question">
+                    Tocoin nədir və necə istifadə olunur?
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Tocoin bizim platformanın daxili valyutasıdır. 1 AZN = 1 Tocoin hesablanır. Balansınızı artırdıqdan
+                    sonra istənilən oyuncağı cəmi bir kliklə, qəbz yükləmədən ala bilərsiniz.
+                </div>
+            </div>
+
+            <div class="glass-card faq-card reveal" style="transition-delay: 400ms;">
+                <div class="faq-question">
+                    Məhsulu necə geri qaytara bilərəm?
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Əgər məhsulda hər hansı zavod qüsuru varsa, 14 gün ərzində tam ödənişsiz şəkildə dəyişdirə və ya
+                    geri qaytara bilərsiniz. Bunun üçün əlaqə bölməsindən bizə yazmağınız kifayətdir.
+                </div>
+            </div>
+
+            <div class="glass-card faq-card reveal" style="transition-delay: 500ms;">
+                <div class="faq-question">
+                    Qeydiyyatdan keçmək vacibdirmi?
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Bəli, sifarişlərinizi izləmək, Tocoin balansından istifadə etmək və xüsusi endirimlərdən yararlanmaq
+                    üçün qeydiyyatdan keçməyiniz mütləqdir.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { renderNavbar, renderFooter, Toast, Loader } from './js/components.js';
+        import { getCurrentUser } from './js/auth.js';
+        import { reveal, initPreloader } from './js/animations.js';
+
+        async function init() {
+            initPreloader();
             const user = await getCurrentUser();
             document.getElementById('app').appendChild(renderNavbar(user));
-            document.getElementById('app').appendChild(renderFooter());
-        })();
+            document.body.appendChild(renderFooter());
+
+            // Accordion Logic
+            document.querySelectorAll('.faq-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const isActive = card.classList.contains('active');
+                    document.querySelectorAll('.faq-card').forEach(c => c.classList.remove('active'));
+                    if (!isActive) card.classList.add('active');
+                });
+            });
+
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
+
+        init();
     </script>
 </body>
 

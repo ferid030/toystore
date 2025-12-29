@@ -24,7 +24,66 @@ async function init() {
     ]);
 
     document.getElementById('logout-btn').addEventListener('click', logout);
+
+    // Avatar Upload Logic
+    document.getElementById('avatar-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        Loader.show();
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}_${Math.random()}.${fileExt}`;
+            const filePath = `avatars/${fileName}`;
+
+            // Upload to receipts bucket (reusing it as it allows auth uploads)
+            // Ideally should be a separate 'avatars' bucket
+            const { error: uploadError } = await supabase.storage
+                .from('receipts')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // Get Public URL (if using a public bucket) or signed URL
+            // Since receipts is private, we should update the DB with the path
+            // For simplicity in this demo, we'll try to get the public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('receipts')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ avatar_url: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            document.getElementById('user-avatar').src = publicUrl;
+            Toast.show('Profil şəkli yeniləndi! ✅', 'success');
+        } catch (err) {
+            console.error('Avatar upload error:', err);
+            Toast.show('Şəkil yüklənərkən xəta: ' + err.message, 'error');
+        } finally {
+            Loader.hide();
+        }
+    });
+
     Loader.hide();
+}
+
+const statusMap = {
+    'pending': { text: 'Gözləyir', class: 'pending' },
+    'waiting': { text: 'Gözləyir', class: 'pending' },
+    'confirmed': { text: 'Təsdiqləndi', class: 'success' },
+    'approved': { text: 'Təsdiqləndi', class: 'success' },
+    'rejected': { text: 'Rədd edildi', class: 'danger' },
+    'paid': { text: 'Ödənildi', class: 'success' },
+    'cancelled': { text: 'Ləğv edildi', class: 'danger' }
+};
+
+function getStatusBadge(status) {
+    const s = statusMap[status] || { text: status, class: 'info' };
+    return `<span class="badge ${s.class}">${s.text}</span>`;
 }
 
 async function loadOrders(userId) {
@@ -41,19 +100,23 @@ async function loadOrders(userId) {
 
     const container = document.getElementById('orders-list');
     if (orders.length === 0) {
-        container.innerHTML = '<p>Sifariş tarixçəsi boşdur.</p>';
+        container.innerHTML = '<p style="opacity:0.5; font-size:0.9rem;">Sifariş tarixçəsi boşdur.</p>';
         return;
     }
 
     container.innerHTML = orders.map(order => `
-        <div class="card mb-1" style="padding:1rem; border:1px solid #eee;">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>Sifariş #${order.id.slice(0, 8)}</strong>
-                <span class="badge ${order.status}">${order.status}</span>
+        <div class="history-item">
+            <div>
+                <strong style="display:block; font-size:0.95rem;">Sifariş #${order.id.slice(0, 8)}</strong>
+                <small style="opacity:0.6;">${new Date(order.created_at).toLocaleDateString()} • ${order.payment_method === 'tocoin' ? 'Tocoin' : 'Kart'}</small>
             </div>
-            <p>${new Date(order.created_at).toLocaleDateString()}</p>
-            <p>Məbləğ: ${order.total_amount_azn > 0 ? order.total_amount_azn + ' AZN' : 'Tocoin'}</p>
-            <p>Ödəniş: ${order.payment_method}</p>
+            <div style="text-align: right;">
+                <div style="font-weight: 800; color: var(--primary-color);" class="mb-1">
+                    ${order.payment_method === 'tocoin' ? '' : (order.total_amount_azn + ' AZN')}
+                    ${order.payment_method === 'tocoin' ? 'Tocoin ilə' : ''}
+                </div>
+                ${getStatusBadge(order.status)}
+            </div>
         </div>
     `).join('');
 }
@@ -72,18 +135,21 @@ async function loadReceipts(userId) {
 
     const container = document.getElementById('receipts-list');
     if (receipts.length === 0) {
-        container.innerHTML = '<p>Qəbz tarixçəsi boşdur.</p>';
+        container.innerHTML = '<p style="opacity:0.5; font-size:0.9rem;">Qəbz tarixçəsi boşdur.</p>';
         return;
     }
 
     container.innerHTML = receipts.map(receipt => `
-        <div class="card mb-1" style="padding:1rem; border:1px solid #eee;">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>Qəbz #${receipt.id.slice(0, 8)}</strong>
-                <span class="badge ${receipt.status}">${receipt.status}</span>
+        <div class="history-item">
+            <div>
+                <strong style="display:block; font-size:0.95rem;">Qəbz #${receipt.id.slice(0, 8)}</strong>
+                <small style="opacity:0.6;">${new Date(receipt.created_at).toLocaleDateString()}</small>
             </div>
-            <p>Məbləğ: ${receipt.amount_azn} AZN</p>
-            ${receipt.admin_note ? `<p style="color:red; font-size:0.9rem;">Qeyd: ${receipt.admin_note}</p>` : ''}
+            <div style="text-align: right;">
+                <div style="font-weight: 800; color: var(--secondary-color);" class="mb-1">${receipt.amount_azn} AZN</div>
+                ${getStatusBadge(receipt.status)}
+            </div>
+            ${receipt.admin_note ? `<div style="width:100%; margin-top:10px; font-size:0.8rem; color:var(--danger-color); padding:8px; background:rgba(255,0,0,0.05); border-radius:5px;">${receipt.admin_note}</div>` : ''}
         </div>
     `).join('');
 }
@@ -102,18 +168,18 @@ async function loadTransactions(userId) {
 
     const container = document.getElementById('transactions-list');
     if (txs.length === 0) {
-        container.innerHTML = '<p>Tocoin əməliyyatı yoxdur.</p>';
+        container.innerHTML = '<p style="opacity:0.5; font-size:0.9rem;">Tocoin əməliyyatı yoxdur.</p>';
         return;
     }
 
     container.innerHTML = txs.map(tx => `
-        <div class="card mb-1" style="padding:0.5rem; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+        <div class="history-item">
             <div>
-                <strong>${tx.type.toUpperCase()}</strong>
-                <br><small>${new Date(tx.created_at).toLocaleDateString()}</small>
+                <strong style="display:block; font-size:0.95rem;">${tx.type === 'deposit' ? 'Balans Artımı' : tx.type === 'purchase' ? 'Alış-veriş' : tx.type === 'admin_adjust' ? 'Admin Düzəlişi' : tx.type}</strong>
+                <small style="opacity:0.6;">${new Date(tx.created_at).toLocaleDateString()}</small>
             </div>
-            <div style="color: ${tx.amount > 0 ? 'green' : 'red'}; font-weight:bold;">
-                ${tx.amount > 0 ? '+' : ''}${tx.amount}
+            <div style="color: ${tx.amount > 0 ? '#2ed573' : '#ff4757'}; font-weight: 800; font-size:1.1rem;">
+                ${tx.amount > 0 ? '+' : ''}${tx.amount} TC
             </div>
         </div>
     `).join('');

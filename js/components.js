@@ -1,95 +1,127 @@
 /**
- * Shared UI Components
+ * Shared UI Components - Modern & Premium Edition
  */
 
 // Navbar Component
 export function renderNavbar(user) {
     const nav = document.createElement('nav');
-    nav.className = 'navbar';
+
+    // Check active path
+    const path = window.location.pathname;
+    const isHome = path === '/' || path === '/index.html' || path === '' || path === '/toysmarket/';
+
+    nav.className = isHome ? 'navbar navbar-home' : 'navbar';
+
     nav.innerHTML = `
-        <div class="container">
-            <a href="/" class="logo">Toys Market</a>
-            <button class="mobile-menu-btn" style="display:none; background:none; font-size:1.5rem;">☰</button>
-            <div class="nav-links">
-                <a href="/" class="active">Ana Səhifə</a>
-                <a href="#" onclick="checkAuthAndNavigate('/about.html'); return false;">Haqqımızda</a>
-                <a href="/buy-tocoin.html" style="color:var(--secondary-color); font-weight:600;">Tocoin Al</a>
-                <a href="#" onclick="checkAuthAndNavigate('/contact.html'); return false;">Əlaqə</a>
-            </div>
-            <div class="nav-actions">
-                ${user ? `
-                    <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.2rem; margin-right:1rem;">
-                        🔔 <span class="notification-count" style="display:none; position:absolute; top:-8px; right:-8px; background:var(--danger); color:white; font-size:0.7rem; padding:2px 6px; border-radius:50%; min-width:18px; text-align:center;">0</span>
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+            <a href="/" class="logo" style="text-decoration: none; font-size: 1.8rem; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; color: transparent;">
+                Toys Market 🎈
+            </a>
+            
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
+                    ${user ? `
+                        <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.4rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03);">
+                            🔔 <span class="notification-count" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--primary-color); color:white; font-size:0.7rem; padding:2px 5px; border-radius:50%; min-width:16px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
+                        </a>
+                    ` : ''}
+                    
+                    <a href="/cart.html" class="cart-icon" style="position:relative; font-size:1.4rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03);">
+                        🛒 <span class="cart-count" style="position:absolute; top:-2px; right:-2px; background:var(--secondary-color); color:white; font-size:0.7rem; padding:2px 5px; border-radius:50%; min-width:16px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
                     </a>
-                ` : ''}
-                <a href="#" onclick="checkAuthAndNavigate('/cart.html'); return false;" class="cart-icon">
-                    🛒 <span class="cart-count">0</span>
-                </a>
+                </div>
+                <button class="mobile-menu-btn" style="background:none; font-size:1.8rem; border:none; cursor:pointer; color: var(--secondary-color); display:none;">☰</button>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/" class="${isHome ? 'active' : ''}">Ana Səhifə</a>
+                <a href="/about.html" class="${path.includes('about') ? 'active' : ''}">Haqqımızda</a>
+                <a href="/buy-tocoin.html" class="${path.includes('buy-tocoin') ? 'active' : ''}" style="color:var(--primary-color) !important; font-weight:800 !important;">💰 Tocoin Al</a>
+                <a href="/contact.html" class="${path.includes('contact') ? 'active' : ''}">Əlaqə</a>
+                
+                <div class="mobile-auth-links" style="margin-top:30px; display:none; flex-direction:column; gap:15px;">
+                     ${user ? `
+                        <a href="/profile.html" class="btn btn-outline">👤 Profil</a>
+                        ${user.role === 'admin' ? `<a href="/admin.html" class="btn btn-primary">🛡️ Admin Panel</a>` : ''}
+                    ` : `
+                        <a href="/login.html" class="btn btn-primary">Giriş Et</a>
+                    `}
+                </div>
+            </div>
+            
+            <div class="desktop-only-auth" style="display: flex; align-items: center; gap: 15px;">
                 ${user ? `
-                    <a href="/profile.html" class="btn btn-sm btn-outline">Profil</a>
-                    ${user.role === 'admin' ? `<a href="/admin.html" class="btn btn-sm btn-outline" style="border-color:var(--primary-color); color:var(--primary-color);">Admin</a>` : ''}
+                    <div style="display: flex; gap: 10px;">
+                        <a href="/profile.html" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.9rem; font-weight: 700;">👤 Profil</a>
+                        ${user.role === 'admin' ? `<a href="/admin.html" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.9rem; font-weight: 700;">🛡️</a>` : ''}
+                    </div>
                 ` : `
-                    <a href="/login.html" class="btn btn-sm btn-primary">Giriş</a>
+                    <a href="/login.html" class="btn btn-primary" style="padding: 10px 25px; font-weight: 700;">Giriş</a>
                 `}
             </div>
         </div>
     `;
 
+    // Scroll Effect
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            nav.classList.add('navbar-scrolled');
+            if (isHome) nav.classList.remove('navbar-home');
+        } else {
+            nav.classList.remove('navbar-scrolled');
+            if (isHome) nav.classList.add('navbar-home');
+        }
+    });
+
     // Mobile menu logic
     const btn = nav.querySelector('.mobile-menu-btn');
     const links = nav.querySelector('.nav-links');
 
-    if (window.innerWidth <= 768) {
-        btn.style.display = 'block';
+    if (btn) {
+        btn.addEventListener('click', () => {
+            links.classList.toggle('active');
+            btn.innerHTML = links.classList.contains('active') ? '✕' : '☰';
+            document.body.style.overflow = links.classList.contains('active') ? 'hidden' : '';
+        });
     }
 
-    btn.addEventListener('click', () => {
-        links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
-    });
-
-    // Auth check function for navigation
-    window.checkAuthAndNavigate = async (url) => {
-        const { getCurrentUser } = await import('./auth.js');
-        const { Toast } = await import('./components.js');
-        const currentUser = await getCurrentUser();
-
-        if (!currentUser) {
-            Toast.show('Bu səhifəyə daxil olmaq üçün qeydiyyatdan keçin', 'error');
-            setTimeout(() => window.location.href = '/login.html', 1000);
-            return;
-        }
-
-        window.location.href = url;
-    };
-
-    // Update notification count
-    if (user) {
-        updateNotificationCount();
-    }
+    // Update counts
+    updateCartCount();
+    if (user) updateNotificationCount();
 
     return nav;
 }
 
-// Function to update notification count
+// Update Cart Count
+export function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const count = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const badges = document.querySelectorAll('.cart-count');
+    badges.forEach(b => {
+        b.textContent = count;
+        b.style.display = count > 0 ? 'block' : 'none';
+    });
+}
+
+// Update Notifications
 async function updateNotificationCount() {
-    const { supabase } = await import('./supabase.js');
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+        const { supabase } = await import('./supabase.js');
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-    if (!user) return;
+        const { count } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
 
-    const { count } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-    const badge = document.querySelector('.notification-count');
-    if (badge && count > 0) {
-        badge.textContent = count;
-        badge.style.display = 'block';
-    } else if (badge) {
-        badge.style.display = 'none';
-    }
+        const badges = document.querySelectorAll('.notification-count');
+        badges.forEach(b => {
+            b.textContent = count;
+            b.style.display = count > 0 ? 'block' : 'none';
+        });
+    } catch (e) { }
 }
 
 // Footer Component
@@ -98,30 +130,71 @@ export function renderFooter() {
     footer.className = 'footer';
     footer.innerHTML = `
         <div class="container">
-            <div class="footer-content">
-                <div>
-                    <h3>Toys Market</h3>
-                    <p>Uşaqlar üçün ən yaxşı oyuncaqlar.</p>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3 class="footer-logo">Toys Market 🎈</h3>
+                    <p class="footer-description">Uşaqlarınızın təhlükəsizliyi və xoşbəxtliyi bizim üçün hər şeydən üstündür. Ən keyfiyyətli oyuncaqların tək ünvanı.</p>
+                    <div class="social-links">
+                        <a href="#" title="Instagram">📸</a>
+                        <a href="#" title="Facebook">📱</a>
+                        <a href="#" title="WhatsApp">💬</a>
+                    </div>
                 </div>
-                <div>
-                    <h3>Linklər</h3>
-                    <ul>
+                <div class="footer-section">
+                    <h4>Sürətli Keçidlər</h4>
+                    <ul class="footer-links">
                         <li><a href="/">Ana Səhifə</a></li>
                         <li><a href="/about.html">Haqqımızda</a></li>
                         <li><a href="/contact.html">Əlaqə</a></li>
+                        <li><a href="/buy-tocoin.html">💰 Tocoin Al</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h3>Əlaqə</h3>
-                    <p>Bakı, Azərbaycan</p>
-                    <p>abbaslif89@gmail.com</p>
+                <div class="footer-section">
+                    <h4>Mağaza</h4>
+                    <ul class="footer-links">
+                        <li><a href="/cart.html">🛒 Səbətim</a></li>
+                        <li><a href="/profile.html">👤 Profilim</a></li>
+                        <li><a href="/faq.html">❓ FAQ</a></li>
+                        <li><a href="/notifications.html">🔔 Bildirişlər</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Bizimlə Əlaqə</h4>
+                    <div class="contact-info">
+                        <p><span>📍</span> Bakı, Azərbaycan, Nizami küç. 42</p>
+                        <p><span>✉️</span> abbaslif89@gmail.com</p>
+                        <p><span>📞</span> +994 51 416 15 05</p>
+                        <p><span>📞</span> +994 55 739 18 24</p>
+                    </div>
+                    <div class="payment-methods" style="margin-top: 20px; font-size: 1.5rem; display: flex; gap: 10px; opacity: 0.8;">
+                        💳 🏦 💰
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
-                &copy; 2023 Toys Market. Bütün hüquqlar qorunur.
+                <p>&copy; 2024 <span class="brand-name">Toys Market</span>. Bütün hüquqlar qorunur. Hazırlanıb: <span style="color:white; opacity:0.8;">Dream Team</span> ✨</p>
+                <button id="back-to-top" title="Yuxarı Qayıt">↑</button>
             </div>
         </div>
     `;
+
+    // Back to top logic
+    setTimeout(() => {
+        const btn = document.getElementById('back-to-top');
+        if (btn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            });
+            btn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+    }, 100);
+
     return footer;
 }
 
@@ -159,15 +232,20 @@ export const Toast = {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;">&times;</button>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size: 1.2rem;">${type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️')}</span>
+                <span>${message}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.5rem;color:currentColor;opacity:0.5;">&times;</button>
         `;
 
         container.appendChild(toast);
-
         setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+            if (toast.parentElement) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 4000);
     }
 };

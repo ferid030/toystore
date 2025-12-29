@@ -8,106 +8,211 @@
     <title>Əlaqə - Toys Market</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .contact-form {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: var(--radius-md);
+        .contact-wrapper {
+            max-width: 1100px;
+            margin: 60px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 50px;
+        }
+
+        @media (max-width: 991px) {
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .contact-info-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .info-card {
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .info-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--bg-white);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
             box-shadow: var(--shadow-sm);
-            max-width: 600px;
-            margin: 0 auto;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .info-content h4 {
+            margin-bottom: 5px;
+            font-size: 1.2rem;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
+        .info-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
         }
 
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: var(--radius-sm);
-            font-family: inherit;
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .social-btn:hover {
+            transform: translateY(-5px);
+            background: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
 
 <body>
-    <div id="navbar"></div>
+    <div id="preloader">
+        <div class="loader-toy">📞</div>
+    </div>
 
-    <div class="container mt-2 fade-in">
-        <div class="contact-form">
-            <h2 class="text-center mb-2">Bizimlə Əlaqə</h2>
+    <div id="app"></div>
+
+    <header class="page-header">
+        <div class="container">
+            <h1>Bizimlə Əlaqə 📞</h1>
+            <p>Sualınız və ya təklifiniz var? Bizə yazmaqdan çəkinməyin.</p>
+        </div>
+    </header>
+
+    <main class="contact-wrapper">
+        <div class="contact-info-cards reveal">
+            <div class="glass-card info-card">
+                <div class="info-icon">📍</div>
+                <div class="info-content">
+                    <h4>Ünvanımız</h4>
+                    <p>Baku, Azerbaijan, Nizami küç. 42</p>
+                </div>
+            </div>
+            <div class="glass-card info-card">
+                <div class="info-icon">✉️</div>
+                <div class="info-content">
+                    <h4>E-poçt</h4>
+                    <p>abbaslif89@gmail.com</p>
+                </div>
+            </div>
+            <div class="glass-card info-card">
+                <div class="info-icon">📞</div>
+                <div class="info-content">
+                    <h4>Telefon</h4>
+                    <p>+994 51 416 15 05</p>
+                    <p>+994 55 739 18 24</p>
+                </div>
+            </div>
+
+            <div class="social-links">
+                <a href="#" class="social-btn">📱</a>
+                <a href="#" class="social-btn">📸</a>
+                <a href="#" class="social-btn">💬</a>
+                <a href="#" class="social-btn">🕊️</a>
+            </div>
+        </div>
+
+        <div class="glass-card reveal" style="padding: 40px; transition-delay: 200ms;">
+            <h3>Bizə Mesaj Göndərin ✉️</h3>
+            <p style="margin-bottom: 30px; opacity: 0.7;">Formu doldurun, komandamız 24 saat ərzində sizinlə əlaqə
+                saxlasın.</p>
+
             <form id="contact-form">
                 <input type="hidden" name="_subject" value="Yeni mesaj - Toys Market">
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="table">
 
-                <div class="form-group">
-                    <label>Adınız</label>
-                    <input type="text" name="name" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Adınız</label>
+                        <input type="text" name="name" class="form-control" placeholder="Nicat" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">E-poçt Ünvanı</label>
+                        <input type="email" name="email" class="form-control" placeholder="nicat@mail.com" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
+                    <label class="form-label">Mövzu</label>
+                    <input type="text" name="subject" class="form-control" placeholder="Sualım var">
                 </div>
                 <div class="form-group">
-                    <label>Mesajınız</label>
-                    <textarea name="message" rows="5" required></textarea>
+                    <label class="form-label">Mesajınız</label>
+                    <textarea name="message" rows="5" class="form-control" placeholder="Mesajınızı buraya yazın..."
+                        required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%">Göndər</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    Mesajı Göndər 🚀
+                </button>
             </form>
         </div>
-    </div>
-
-    <div id="footer"></div>
+    </main>
 
     <script type="module">
         import { renderNavbar, renderFooter, Toast, Loader } from './js/components.js';
         import { getCurrentUser } from './js/auth.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        (async () => {
+        async function init() {
+            initPreloader();
             const user = await getCurrentUser();
-            document.getElementById('navbar').appendChild(renderNavbar(user));
-            document.getElementById('footer').appendChild(renderFooter());
+            document.getElementById('app').appendChild(renderNavbar(user));
+            document.body.appendChild(renderFooter());
 
             document.getElementById('contact-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 Loader.show();
-
                 const formData = new FormData(e.target);
-
                 try {
                     const response = await fetch("https://formsubmit.co/ajax/abbaslif89@gmail.com", {
                         method: "POST",
                         body: formData
                     });
-
-                    const data = await response.json();
-
                     if (response.ok) {
-                        Toast.show('Mesajınız uğurla göndərildi! Tezliklə sizinlə əlaqə saxlayacağıq.', 'success');
+                        Toast.show('Mesajınız uğurla göndərildi!', 'success');
                         e.target.reset();
                     } else {
-                        throw new Error(data.message || 'Xəta baş verdi');
+                        throw new Error('Xəta baş verdi');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
-                    Toast.show('Mesaj göndərilərkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.', 'error');
+                    Toast.show('Mesaj göndərilərkən xəta baş verdi.', 'error');
                 } finally {
                     Loader.hide();
                 }
             });
-        })();
+
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
+
+        init();
     </script>
 </body>
 

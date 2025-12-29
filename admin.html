@@ -5,50 +5,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
-    <title>Admin Panel - Toys Market</title>
+    <title>Admin Dashboard - Toys Market</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-    <div class="admin-layout">
-        <div class="sidebar">
-            <h2>Admin Panel</h2>
-            <a href="admin.html" class="active">Dashboard</a>
-            <a href="admin-toys.html">Oyuncaqlar</a>
-            <a href="admin-receipts.html">Qəbzlər</a>
-            <a href="admin-users.html">İstifadəçilər</a>
-            <a href="admin-orders.html">Sifarişlər</a>
-            <a href="/">Sayta Qayıt</a>
-        </div>
-        <div class="main-content">
-            <h1 class="mb-2">Xoş gəldiniz, Admin</h1>
+    <div id="preloader">
+        <div class="loader-toy">🛡️</div>
+    </div>
 
-            <div class="dashboard-stats">
-                <div class="card">
-                    <h3>İstifadəçilər</h3>
-                    <p style="font-size:2rem; font-weight:bold;" id="count-users">...</p>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <h2>Toys Market</h2>
+            <nav class="admin-nav">
+                <a href="admin.html" class="active"><span>📊</span> <span>Dashboard</span></a>
+                <a href="admin-toys.html"><span>🧸</span> <span>Oyuncaqlar</span></a>
+                <a href="admin-receipts.html"><span>🧾</span> <span>Qəbzlər</span></a>
+                <a href="admin-users.html"><span>👥</span> <span>İstifadəçilər</span></a>
+                <a href="admin-orders.html"><span>📦</span> <span>Sifarişlər</span></a>
+                <hr style="opacity: 0.1; margin: 10px 0;">
+                <a href="/"><span>🏠</span> <span>Sayta Qayıt</span></a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header reveal">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800;">Xoş Gəldiniz, Admin 👋</h1>
+                    <p style="color: var(--text-muted);">Mağazanın ümumi vəziyyəti və statistikası.</p>
                 </div>
-                <div class="card">
-                    <h3>Sifarişlər</h3>
-                    <p style="font-size:2rem; font-weight:bold;" id="count-orders">...</p>
+                <div class="admin-user-info" style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-weight: 700;">Adminstrator</span>
+                    <div
+                        style="width: 45px; height: 45px; background: var(--grad-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800;">
+                        A</div>
                 </div>
-                <div class="card">
+            </header>
+
+            <div class="admin-stats-grid reveal" style="transition-delay: 200ms;">
+                <div class="stat-item">
+                    <h3>Ümumi İstifadəçilər</h3>
+                    <div class="value" id="count-users">...</div>
+                    <div style="font-size: 0.8rem; color: var(--success); margin-top: 10px;">📈 +12% bu ay</div>
+                </div>
+                <div class="stat-item">
+                    <h3>Ümumi Sifarişlər</h3>
+                    <div class="value" id="count-orders">...</div>
+                    <div style="font-size: 0.8rem; color: var(--info); margin-top: 10px;">📦 24 yeni sifariş</div>
+                </div>
+                <div class="stat-item">
                     <h3>Gözləyən Qəbzlər</h3>
-                    <p style="font-size:2rem; font-weight:bold;" id="count-receipts">...</p>
+                    <div class="value" id="count-receipts" style="color: var(--primary-color);">...</div>
+                    <div style="font-size: 0.8rem; color: var(--danger); margin-top: 10px;">⚠️ Təcili təsdiq gözləyir
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="glass-card reveal" style="margin-top: 40px; padding: 40px; transition-delay: 300ms;">
+                <h3 style="margin-bottom: 20px;">Xəbərdarlıqlar və Bildirişlər</h3>
+                <p style="opacity: 0.7;">Dashboard hələ ki inkişaf mərhələsindədir. Tezliklə bura qrafiklər və canlı
+                    satış axını əlavə olunacaq.</p>
+            </div>
+        </main>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js';
         import { checkAdmin } from './js/admin.js';
+        import { reveal, initPreloader } from './js/animations.js';
 
-        (async () => {
+        async function init() {
+            initPreloader();
             await checkAdmin();
 
             // Fetch stats
@@ -59,7 +92,12 @@
             document.getElementById('count-users').textContent = usersCount;
             document.getElementById('count-orders').textContent = ordersCount;
             document.getElementById('count-receipts').textContent = receiptsCount;
-        })();
+
+            window.addEventListener('scroll', reveal);
+            reveal();
+        }
+
+        init();
     </script>
 </body>
 
