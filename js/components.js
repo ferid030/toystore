@@ -14,23 +14,23 @@ export function renderNavbar(user) {
 
     nav.innerHTML = `
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-            <a href="/" class="logo" style="text-decoration: none; font-size: 1.8rem; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; color: transparent;">
+            <a href="/" class="logo">
                 Toys Market 🎈
             </a>
             
             <div style="display:flex; align-items:center; gap:10px;">
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
                     ${user ? `
-                        <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.4rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03);">
-                            🔔 <span class="notification-count" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--primary-color); color:white; font-size:0.7rem; padding:2px 5px; border-radius:50%; min-width:16px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
+                        <a href="/notifications.html" class="notification-icon" style="position:relative; font-size:1.2rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center;">
+                            🔔 <span class="notification-count" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--primary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
                         </a>
                     ` : ''}
                     
-                    <a href="/cart.html" class="cart-icon" style="position:relative; font-size:1.4rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03);">
-                        🛒 <span class="cart-count" style="position:absolute; top:-2px; right:-2px; background:var(--secondary-color); color:white; font-size:0.7rem; padding:2px 5px; border-radius:50%; min-width:16px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
+                    <a href="/cart.html" class="cart-icon" style="position:relative; font-size:1.2rem; text-decoration: none; padding: 8px; border-radius: 50%; transition: 0.3s; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center;">
+                        🛒 <span class="cart-count" style="position:absolute; top:-2px; right:-2px; background:var(--secondary-color); color:white; font-size:0.6rem; padding:1px 4px; border-radius:10px; min-width:14px; text-align:center; font-weight:800; border: 2px solid white;">0</span>
                     </a>
                 </div>
-                <button class="mobile-menu-btn" style="background:none; font-size:1.8rem; border:none; cursor:pointer; color: var(--secondary-color); display:none;">☰</button>
+                <button class="mobile-menu-btn">☰</button>
             </div>
             
             <div class="nav-links">
@@ -39,12 +39,12 @@ export function renderNavbar(user) {
                 <a href="/buy-tocoin.html" class="${path.includes('buy-tocoin') ? 'active' : ''}" style="color:var(--primary-color) !important; font-weight:800 !important;">💰 Tocoin Al</a>
                 <a href="/contact.html" class="${path.includes('contact') ? 'active' : ''}">Əlaqə</a>
                 
-                <div class="mobile-auth-links" style="margin-top:30px; display:none; flex-direction:column; gap:15px;">
+                <div class="mobile-auth-links" style="margin-top:30px; display:none; flex-direction:column; gap:15px; width: 100%;">
                      ${user ? `
-                        <a href="/profile.html" class="btn btn-outline">👤 Profil</a>
-                        ${user.role === 'admin' ? `<a href="/admin.html" class="btn btn-primary">🛡️ Admin Panel</a>` : ''}
+                        <a href="/profile.html" class="btn btn-outline" style="width: 100%;">👤 Profil</a>
+                        ${user.role === 'admin' ? `<a href="/admin.html" class="btn btn-primary" style="width: 100%;">🛡️ Admin Panel</a>` : ''}
                     ` : `
-                        <a href="/login.html" class="btn btn-primary">Giriş Et</a>
+                        <a href="/login.html" class="btn btn-primary" style="width: 100%;">Giriş Et</a>
                     `}
                 </div>
             </div>

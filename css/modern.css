@@ -175,8 +175,29 @@ body {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 10px 0;
+    padding: 8px 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.logo {
+    text-decoration: none;
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: var(--grad-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .navbar {
+        padding: 10px 0;
+    }
+
+    .logo {
+        font-size: 1.3rem;
+    }
 }
 
 .nav-links {
@@ -388,10 +409,24 @@ body {
         padding: 15px 0;
     }
 
+    .desktop-only-auth {
+        display: none !important;
+    }
+
+    .mobile-auth-links {
+        display: flex !important;
+    }
+
     .mobile-menu-btn {
         display: flex !important;
         position: relative;
         z-index: 1001;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.03) !important;
+        border-radius: 50% !important;
     }
 }
 
@@ -473,8 +508,15 @@ body {
     text-align: center;
     margin-bottom: clamp(30px, 8vh, 80px);
     border-radius: 0 0 40px 40px;
-    margin-top: -80px;
+    margin-top: -70px;
     /* Offset body padding */
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        padding: 40px 0 60px;
+        border-radius: 0 0 30px 30px;
+    }
 }
 
 .page-header h1 {
